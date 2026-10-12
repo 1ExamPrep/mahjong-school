@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="96" fill="#1f5c46"/>
+  <rect x="146" y="112" width="220" height="296" rx="28" fill="#b8925a"/>
+  <rect x="146" y="96" width="220" height="292" rx="28" fill="#fdf8ec"/>
+  <rect x="186" y="140" width="140" height="160" rx="16" fill="none" stroke="#c0392b" stroke-width="18"/>
+  <text x="256" y="226" font-family="Georgia,serif" font-weight="800" font-size="104" fill="#c0392b" text-anchor="middle" dominant-baseline="central">R</text>
+  <text x="256" y="345" font-family="system-ui,sans-serif" font-weight="800" font-size="34" letter-spacing="4" fill="#c0392b" text-anchor="middle">MAHJONG</text>
+</svg>
