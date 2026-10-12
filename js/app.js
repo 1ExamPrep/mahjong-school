@@ -406,35 +406,49 @@
 
   function tourMatch(w, lock) {
     lock(true);
-    const suits = shuffle(['b', 'c', 'd']).map(s => s + (2 + rand(7)));
-    const dragons = shuffle(['DR', 'DG', 'DW']);
+    // 8 suit tiles: each suit at least twice, all different, 1 Bam bird sometimes included
+    let tiles;
+    do {
+      tiles = [];
+      ['b', 'c', 'd'].forEach(s => { shuffle([1, 2, 3, 4, 5, 6, 7, 8, 9]).slice(0, 2).forEach(n => tiles.push(s + n)); });
+      while (tiles.length < 8) { const t = pick(SUITED); if (!tiles.includes(t)) tiles.push(t); }
+    } while (new Set(tiles).size !== 8);
+    tiles = shuffle(tiles);
     const goesWith = { b: 'DG', c: 'DR', d: 'DW' };
+    const dragons = ['DG', 'DR', 'DW'];
+    const counts = { DG: 0, DR: 0, DW: 0 };
     let sel = null, done = 0;
-    w.innerHTML = `<div class="match">
-      <div class="mcol">${suits.map(c => `<button class="mtile" data-c="${c}">${renderTile(c, 56)}<span>${SUIT_NAME[SUIT_LETTER[c[0]]]}s</span></button>`).join('')}</div>
-      <div class="mcol">${dragons.map(c => `<button class="mtile" data-c="${c}">${renderTile(c, 56)}<span>${tileName(c).replace(' (Soap)', '')}</span></button>`).join('')}</div>
-      </div><div id="mfb" class="tapinfo">Tap a suit tile on the left first.</div>`;
-    const fb = w.querySelector('#mfb');
-    const left = [...w.querySelectorAll('.mcol')[0].children], right = [...w.querySelectorAll('.mcol')[1].children];
-    left.forEach(b => {
+    w.innerHTML = `<p class="small center" id="mcount">0 of 8 matched</p>
+      <div class="m8grid">${tiles.map(c => `<button class="m8" data-c="${c}">${renderTile(c, 50)}<span>${tileName(c)}</span></button>`).join('')}</div>
+      <div class="m8drag">${dragons.map(c => `<button class="mdrag" data-c="${c}">${renderTile(c, 52)}<span class="mdn">${tileName(c).replace(' (Soap)', '')}${c === 'DW' ? '<small>soap</small>' : ''}</span><span class="mpile" id="pile-${c}"></span></button>`).join('')}</div>
+      <div id="mfb" class="tapinfo">Tap a tile on top, then tap its dragon below.</div>`;
+    const fb = w.querySelector('#mfb'), cnt = w.querySelector('#mcount');
+    const tbtns = [...w.querySelectorAll('.m8')], dbtns = [...w.querySelectorAll('.mdrag')];
+    tbtns.forEach(b => {
       b.onclick = () => {
-        left.forEach(x => x.classList.remove('sel'));
+        tbtns.forEach(x => x.classList.remove('sel'));
         b.classList.add('sel'); sel = b;
-        fb.textContent = 'Now tap the dragon that goes with ' + SUIT_NAME[SUIT_LETTER[b.dataset.c[0]]] + 's.';
+        fb.innerHTML = `<b>${tileName(b.dataset.c)}</b>. Now tap the dragon that goes with ${SUIT_NAME[SUIT_LETTER[b.dataset.c[0]]]}s.`;
       };
     });
-    right.forEach(b => {
+    dbtns.forEach(b => {
       b.onclick = () => {
-        if (!sel) { fb.textContent = 'Pick a suit tile on the left first.'; return; }
-        const s = sel.dataset.c[0];
-        if (goesWith[s] === b.dataset.c) {
-          [sel, b].forEach(x => { x.classList.remove('sel'); x.classList.add('matched', 'm-' + s); x.disabled = true; });
-          done++; sel = null;
-          fb.innerHTML = `<b>Match!</b> ${tileName(b.dataset.c).replace(' (Soap)', ' (soap)')} goes with ${SUIT_NAME[SUIT_LETTER[s]]}s.`;
-          if (done === 3) { fb.innerHTML = '<b>All three matched.</b> Green with Bams, red with Craks, soap with Dots.'; lock(false); }
+        if (!sel) { fb.textContent = 'Pick a tile on top first.'; return; }
+        const c = sel.dataset.c, s = c[0], d = b.dataset.c;
+        if (goesWith[s] === d) {
+          sel.classList.remove('sel'); sel.classList.add('matched', 'm-' + s); sel.disabled = true;
+          counts[d]++; done++; sel = null;
+          w.querySelector('#pile-' + d).insertAdjacentHTML('beforeend', renderTile(c, 20));
+          b.classList.add('flash', 'm-' + s); setTimeout(() => b.classList.remove('flash'), 350);
+          cnt.textContent = `${done} of 8 matched`;
+          fb.innerHTML = `<b>Match!</b> ${tileName(c)} is a ${SUIT_NAME[SUIT_LETTER[s]]}, so it goes with the ${tileName(d).replace(' (Soap)', ' (soap)')}.`;
+          if (done === 8) {
+            fb.innerHTML = `<b>All 8 matched!</b> Bams go with the Green Dragon, Craks with the Red Dragon, and Dots with soap. The number never matters, only the suit.`;
+            lock(false);
+          }
         } else {
           b.classList.add('shake'); setTimeout(() => b.classList.remove('shake'), 400);
-          fb.textContent = 'Not that one. Look at the colors.';
+          fb.innerHTML = `Not that one. ${tileName(c)} is a <b>${SUIT_NAME[SUIT_LETTER[s]]}</b>. ${s === 'b' ? 'Bamboo is green.' : s === 'c' ? 'Craks have the red 萬.' : 'Dots go with the white dragon.'}`;
         }
       };
     });

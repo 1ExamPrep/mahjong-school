@@ -503,13 +503,13 @@ const TOUR = [
     type: 'info', title: 'Dragons',
     body: `<p>There are three <b>dragons</b>, four of each, 12 total. Red shows a red 中, green shows a green 發, and white is an empty blue frame. Here's the key part: <b>every dragon belongs to one suit</b>.</p>
       <div class="pairs">
-        <div class="pair-row">[[b5 DG|44]]<span><b class="c-bam">Green Dragon</b> goes with <b>Bams</b></span></div>
-        <div class="pair-row">[[c5 DR|44]]<span><b class="c-crak">Red Dragon</b> goes with <b>Craks</b></span></div>
-        <div class="pair-row">[[d5 DW|44]]<span><b class="c-dot">White Dragon</b> goes with <b>Dots</b>. It's just a blue frame, and its nickname is <b>soap</b>.</span></div>
+        <div class="pair-row">[[b8 DG|44]]<span><b class="c-bam">Green Dragon</b> goes with <b>Bams</b></span></div>
+        <div class="pair-row">[[c8 DR|44]]<span><b class="c-crak">Red Dragon</b> goes with <b>Craks</b></span></div>
+        <div class="pair-row">[[d8 DW|44]]<span><b class="c-dot">White Dragon</b> goes with <b>Dots</b>. It's just a blue frame, and its nickname is <b>soap</b>.</span></div>
       </div>
       <p class="small">Soap has one more job: when the card shows a 0, like in a year, soap plays the zero.</p>`
   },
-  { type: 'match', title: 'Match the dragons', body: '<p>Tap a suit tile, then tap the dragon that goes with it.</p>' },
+  { type: 'match', title: 'Match the dragons', body: '<p>Here are 8 tiles from all three suits. Tap a tile, then tap the dragon it goes with. Only the suit matters, not the number.</p>' },
   {
     type: 'info', title: 'Flowers',
     body: `<p>There are eight <b>flowers</b>. Different sets print different flowers, seasons or numbers on them, but in American mahjong <b>every flower counts as the same tile</b>. They have no suit.</p>

@@ -337,3 +337,27 @@ main { max-width: 760px; margin: 0 auto; padding: 16px 16px 48px; }
 .hardtip { background: var(--warn-bg); border-radius: 12px; padding: 10px 14px; margin: 12px 0; font-size: 15px; }
 .hardtip ul { margin: 4px 0 0; padding-left: 20px; }
 .drill-top .lvl-badge { color: #fff; font-size: 11px; }
+
+/* ---------- 8-tile dragon match ---------- */
+.m8grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-top: 6px; }
+.m8 {
+  display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 6px 2px 4px;
+  background: var(--surface2); border: 2px solid var(--line); border-radius: 12px; font: inherit; color: var(--ink); cursor: pointer;
+}
+.m8 span { font-size: 11px; font-weight: 700; line-height: 1.1; text-align: center; }
+.m8.sel { border-color: var(--felt); background: var(--surface); box-shadow: 0 0 0 3px color-mix(in srgb, var(--felt) 25%, transparent); transform: translateY(-3px); }
+.m8.matched { opacity: .35; cursor: default; }
+.m8.m-b { border-color: var(--c); } .m8.m-c { border-color: var(--b); } .m8.m-d { border-color: var(--a); }
+.m8drag { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 14px; }
+.mdrag {
+  display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 10px 4px 8px; min-height: 150px;
+  background: var(--surface); border: 2px dashed var(--line); border-radius: 14px; font: inherit; color: var(--ink); cursor: pointer;
+}
+.mdn { font-size: 13px; font-weight: 800; text-align: center; line-height: 1.15; }
+.mdn small { display: block; font-weight: 600; color: var(--muted); }
+.mpile { display: flex; flex-wrap: wrap; gap: 1px; justify-content: center; min-height: 28px; }
+.mdrag[data-c="DG"] { border-color: color-mix(in srgb, var(--c) 55%, var(--line)); }
+.mdrag[data-c="DR"] { border-color: color-mix(in srgb, var(--b) 55%, var(--line)); }
+.mdrag[data-c="DW"] { border-color: color-mix(in srgb, var(--a) 55%, var(--line)); }
+.mdrag.flash { transform: scale(1.04); transition: transform .15s; }
+@media (min-width: 560px) { .m8grid { grid-template-columns: repeat(8, 1fr); } }
