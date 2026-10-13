@@ -39,7 +39,10 @@ Then visit `http://localhost:8000`.
 | `js/helper.js` | Hand helper: photo of your rack plus a tile keypad, then ranked categories, best hands and tiles to pass |
 | `js/app.js` | Pages, the quiz engine, and saved progress |
 | `sw.js` | Offline support |
-| `manifest.webmanifest`, `icon.svg` | Lets phones install it like an app |
+| `manifest.webmanifest`, `icon.svg`, `icons/` | Lets phones install it like an app (PNG icons for iPhone, Android and the stores) |
+| `install.html` | Install page with Download for Android and Add to iPhone instructions. Share this link with testers |
+| `privacy.html` | Privacy policy (needed for the app stores) |
+| `mahjong-school.apk` | Not included. Add your Android test build here (see below) |
 
 ## Editing
 
@@ -68,3 +71,12 @@ That gives you real Xcode and Android Studio projects for phones and tablets usi
 ## Content note
 
 This is an independent learning app, not an official National Mah Jongg League product. It doesn't include the yearly NMJL card. Practice lines in the lessons and drills are made up for teaching. Use the current League card and official rules for real games and disputes.
+
+## Android test build (APK)
+
+1. Go to https://www.pwabuilder.com and enter your site link, like `https://YOUR-USERNAME.github.io/mahjong-school/`.
+2. Choose **Package for stores > Android > Generate package**. Keep the defaults and let it create a new signing key.
+3. Unzip the download. Rename the `.apk` file to `mahjong-school.apk` and upload it to the top folder of this repo.
+4. Keep the `.aab` file, the `signing.keystore` and the signing key info somewhere safe. You need the same key for every future update and for Google Play.
+5. Share `https://YOUR-USERNAME.github.io/mahjong-school/install.html` with testers.
+

@@ -1,8 +1,9 @@
 /* Offline cache. Bump VERSION whenever you change any file so phones pick up the update. */
-const VERSION = 'mahjong-school-v13';
+const VERSION = 'mahjong-school-v14';
 const FILES = [
   './', 'index.html', 'css/style.css', 'js/tiles.js', 'js/content.js', 'js/drills.js', 'js/card.js', 'js/steps.js', 'js/ask.js', 'js/helper.js', 'js/app.js',
-  'manifest.webmanifest', 'icon.svg'
+  'manifest.webmanifest', 'icon.svg', 'install.html', 'privacy.html',
+  'icons/icon-192.png', 'icons/icon-512.png', 'icons/maskable-192.png', 'icons/maskable-512.png', 'icons/apple-touch-icon.png'
 ];
 
 self.addEventListener('install', e => {

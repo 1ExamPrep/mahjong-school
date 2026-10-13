@@ -127,6 +127,7 @@
       <a class="card" href="#/reference"><span class="num">≡</span><span class="card-body"><b>Table reference</b><small>Checklists to keep open while you play.</small></span></a>
       <a class="card" href="#/tiles"><span class="num">◐</span><span class="card-body"><b>Tile style</b><small>Now using ${currentTheme().name}.</small></span></a>
     </div>
+    ${window.matchMedia('(display-mode: standalone)').matches || navigator.standalone ? '' : `<a class="installcard" href="install.html"><span>📲</span><span><b>Install the app</b><small>Put Mahjong School on your Android or iPhone home screen.</small></span></a>`}
     <footer class="foot">An independent learning app, not an official National Mah Jongg League product. Use the current League card and rules for real games and disputes. Practice lines here are invented.
     <br><button class="linkbtn" id="reset">Reset my progress</button></footer>`;
     app.innerHTML = html;

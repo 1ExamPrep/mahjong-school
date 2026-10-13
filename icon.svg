@@ -1,8 +1,7 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <rect width="512" height="512" rx="96" fill="#1f5c46"/>
-  <rect x="146" y="112" width="220" height="296" rx="28" fill="#b8925a"/>
-  <rect x="146" y="96" width="220" height="292" rx="28" fill="#fdf8ec"/>
-  <rect x="186" y="140" width="140" height="160" rx="16" fill="none" stroke="#c0392b" stroke-width="18"/>
-  <text x="256" y="226" font-family="Georgia,serif" font-weight="800" font-size="104" fill="#c0392b" text-anchor="middle" dominant-baseline="central">R</text>
-  <text x="256" y="345" font-family="system-ui,sans-serif" font-weight="800" font-size="34" letter-spacing="4" fill="#c0392b" text-anchor="middle">MAHJONG</text>
-</svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><rect width="512" height="512" rx="96" fill="#1f5c46"/>
+  <circle cx="256" cy="256" r="240.8" fill="#24694f"/><g transform="translate(144,99.94666666666663) scale(3.733333333333334)">
+    <rect x="2" y="6" width="56" height="73" rx="7" fill="#14503d"/>
+    <rect x="2" y="4" width="56" height="70" rx="7" fill="#e3d8bf"/>
+    <rect x="2.3" y="1.5" width="55.4" height="71" rx="6.5" fill="#fffdf5" stroke="#d6ccb3" stroke-width=".8"/>
+    <text x="30" y="37" font-size="38" font-weight="700" fill="#c62828" text-anchor="middle" dominant-baseline="central" font-family="'Noto Serif CJK SC','Noto Sans CJK SC','Songti SC',serif">中</text>
+  </g></svg>

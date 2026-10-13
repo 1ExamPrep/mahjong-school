@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Install Mahjong School</title>
+  <meta name="description" content="Install the Mahjong School test app on Android or iPhone.">
+  <meta name="theme-color" content="#1f5c46">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <style>
+    :root { --bg:#f4f1ea; --surface:#fff; --surface2:#f8f6f1; --ink:#1f2420; --muted:#667066; --line:#e2ddd2; --felt:#1f5c46; --ok:#1d7a47; --ok-bg:#e6f4ec; --warn-bg:#fff4d6; --android:#2e7d32; --apple:#1c1c1e; }
+    @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --bg:#12161a; --surface:#1b2127; --surface2:#222930; --ink:#e9ece8; --muted:#9aa49c; --line:#2d353d; --felt:#2a7a5e; --ok:#5fd08f; --ok-bg:#173527; --warn-bg:#3a3016; --apple:#3a3a3c; } }
+    :root[data-theme="dark"] { --bg:#12161a; --surface:#1b2127; --surface2:#222930; --ink:#e9ece8; --muted:#9aa49c; --line:#2d353d; --felt:#2a7a5e; --ok:#5fd08f; --ok-bg:#173527; --warn-bg:#3a3016; --apple:#3a3a3c; }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--bg); color: var(--ink); font: 16px/1.55 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+    main { max-width: 640px; margin: 0 auto; padding: calc(20px + env(safe-area-inset-top)) 16px calc(40px + env(safe-area-inset-bottom)); }
+    .hero { text-align: center; padding: 10px 0 18px; }
+    .hero img { width: 96px; height: 96px; border-radius: 22px; box-shadow: 0 6px 20px rgba(0,0,0,.18); }
+    h1 { font-size: 28px; margin: 12px 0 4px; }
+    .lead { color: var(--muted); margin: 0; }
+    .badge { display: inline-block; margin-top: 10px; font-size: 13px; font-weight: 700; background: var(--warn-bg); border-radius: 99px; padding: 3px 12px; }
+    .card { background: var(--surface); border: 1px solid var(--line); border-radius: 18px; padding: 18px; margin: 14px 0; box-shadow: 0 1px 2px rgba(0,0,0,.05), 0 2px 8px rgba(0,0,0,.05); }
+    .card.mine { border: 2px solid var(--felt); }
+    .card h2 { display: flex; align-items: center; gap: 10px; font-size: 20px; margin: 0 0 4px; }
+    .card h2 svg { width: 28px; height: 28px; flex: none; }
+    .foryou { font-size: 12px; font-weight: 800; color: var(--felt); text-transform: uppercase; letter-spacing: .6px; margin-bottom: 6px; }
+    .btn { display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; min-height: 54px; padding: 12px 18px; border-radius: 14px; border: 0; font: inherit; font-weight: 800; font-size: 17px; text-decoration: none; cursor: pointer; margin: 12px 0 6px; color: #fff; }
+    .btn svg { width: 24px; height: 24px; }
+    .btn.android { background: var(--android); }
+    .btn.apple { background: var(--apple); }
+    .btn.ghost { background: var(--surface2); color: var(--ink); border: 1px solid var(--line); font-weight: 700; font-size: 15px; min-height: 46px; }
+    .btn[aria-disabled="true"] { opacity: .45; pointer-events: none; }
+    ol { padding-left: 22px; margin: 8px 0; }
+    ol li { margin: 8px 0; }
+    .small { font-size: 14px; color: var(--muted); }
+    .note { background: var(--warn-bg); border-radius: 12px; padding: 10px 12px; font-size: 14px; margin: 10px 0; }
+    .okbox { background: var(--ok-bg); border-radius: 12px; padding: 12px; margin: 10px 0; font-weight: 600; }
+    .kbd { display: inline-flex; align-items: center; gap: 4px; background: var(--surface2); border: 1px solid var(--line); border-radius: 7px; padding: 0 7px; font-weight: 700; white-space: nowrap; }
+    .kbd svg { width: 15px; height: 15px; }
+    details { margin-top: 8px; }
+    summary { cursor: pointer; font-weight: 700; font-size: 15px; }
+    .qr { display: flex; gap: 16px; align-items: center; }
+    .qr #qrcode { background: #fff; padding: 8px; border-radius: 10px; flex: none; }
+    .qr #qrcode img, .qr #qrcode canvas { display: block; }
+    footer { text-align: center; color: var(--muted); font-size: 13px; margin-top: 26px; }
+    footer a { color: var(--felt); font-weight: 700; }
+    [hidden] { display: none !important; }
+  </style>
+</head>
+<body>
+<main>
+  <section class="hero">
+    <img src="icons/icon-192.png" alt="" width="96" height="96">
+    <h1>Mahjong School</h1>
+    <p class="lead">Learn American Mahjong step by step. Works offline.</p>
+    <span class="badge">Test version</span>
+  </section>
+
+  <div class="okbox" id="already" hidden>You already have Mahjong School installed and open. You're all set.</div>
+
+  <!-- Android -->
+  <section class="card" id="android">
+    <div class="foryou" hidden>For your phone</div>
+    <h2><svg viewBox="0 0 24 24" fill="#3ddc84" aria-hidden="true"><path d="M17.6 9.48l1.84-3.18a.38.38 0 0 0-.66-.38l-1.86 3.22a11.5 11.5 0 0 0-9.84 0L5.22 5.92a.38.38 0 0 0-.66.38L6.4 9.48A10.8 10.8 0 0 0 1 18h22a10.8 10.8 0 0 0-5.4-8.52zM7 15.25a1.25 1.25 0 1 1 0-2.5 1.25 1.25 0 0 1 0 2.5zm10 0a1.25 1.25 0 1 1 0-2.5 1.25 1.25 0 0 1 0 2.5z"/></svg>Android</h2>
+    <a class="btn android" id="apkbtn" href="mahjong-school.apk" download>
+      <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12m0 0l-5-5m5 5l5-5M4 19h16"/></svg>Download for Android</a>
+    <p class="note" id="apkmissing" hidden>The Android test app hasn't been uploaded yet. You can still install the web version with the button below.</p>
+    <details open id="apksteps">
+      <summary>How to install it</summary>
+      <ol>
+        <li>Tap <b>Download for Android</b>, then open the downloaded file.</li>
+        <li>If your phone says it can't install apps from this source, tap <b>Settings</b>, turn on <b>Allow from this source</b>, then go back.</li>
+        <li>Tap <b>Install</b>.</li>
+        <li>If you see a warning about an unrecognized app, tap <b>More details</b>, then <b>Install anyway</b>. That's normal for a test version that isn't in the Play Store yet.</li>
+        <li>Open <b>Mahjong School</b> from your home screen.</li>
+      </ol>
+    </details>
+    <button class="btn ghost" id="webinstall" hidden>Or install the web version (no download)</button>
+    <p class="small" id="webinstallhelp" hidden>For the web version, open this page in Chrome, tap the <span class="kbd">⋮</span> menu, then <b>Install app</b> or <b>Add to Home screen</b>.</p>
+  </section>
+
+  <!-- iPhone -->
+  <section class="card" id="iphone">
+    <div class="foryou" hidden>For your phone</div>
+    <h2><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M16.37 12.6c.02 2.43 2.13 3.24 2.15 3.25-.02.06-.34 1.15-1.11 2.28-.67.98-1.36 1.95-2.45 1.97-1.07.02-1.42-.63-2.64-.63-1.23 0-1.61.61-2.62.65-1.05.04-1.85-1.06-2.53-2.03-1.38-2-2.43-5.65-1.02-8.11.7-1.22 1.96-2 3.32-2.02 1.03-.02 2.01.7 2.64.7.63 0 1.82-.86 3.06-.73.52.02 1.98.21 2.92 1.59-.08.05-1.74 1.02-1.72 3.08zM14.36 5.05c.56-.68.93-1.62.83-2.55-.8.03-1.77.53-2.35 1.21-.51.6-.97 1.55-.85 2.47.9.07 1.81-.46 2.37-1.13z"/></svg>iPhone and iPad</h2>
+    <p class="small">The test version installs from Safari in a few taps. No download, no settings to change.</p>
+    <div class="note" id="notsafari" hidden>For the easiest install, open this page in <b>Safari</b>. Copy the link and paste it into Safari.</div>
+    <ol>
+      <li>Open this page in <b>Safari</b>.</li>
+      <li>Tap the <b>Share</b> button <span class="kbd"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12M7 8l5-5 5 5M5 12v8h14v-8"/></svg>Share</span> at the bottom of the screen (on iPad, it's at the top).</li>
+      <li>Scroll down and tap <span class="kbd">Add to Home Screen</span>.</li>
+      <li>Tap <b>Add</b> in the top corner.</li>
+      <li>Open <b>Mahjong School</b> from your home screen. It runs full screen and works offline.</li>
+    </ol>
+    <a class="btn apple" href="./"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14m-6-6l6 6-6 6"/></svg>Open the app</a>
+    <p class="small">The App Store version will come later through Apple's TestFlight.</p>
+  </section>
+
+  <!-- Computer -->
+  <section class="card" id="desktop" hidden>
+    <h2>On a computer?</h2>
+    <div class="qr"><div id="qrcode"></div><p class="small">Scan this with your phone's camera to open this page there.</p></div>
+  </section>
+
+  <footer>
+    <p>Mahjong School is an independent learning app, not an official National Mah Jongg League product.</p>
+    <p><a href="./">Go to the app</a> · <a href="privacy.html">Privacy</a></p>
+  </footer>
+</main>
+
+<script>
+(function () {
+  const ua = navigator.userAgent || '';
+  const isIOS = /iPad|iPhone|iPod/.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1);
+  const isAndroid = /Android/i.test(ua);
+  const standalone = window.matchMedia('(display-mode: standalone)').matches || navigator.standalone;
+  const $ = id => document.getElementById(id);
+
+  if (standalone) $('already').hidden = false;
+
+  // put the visitor's own platform first
+  const main = document.querySelector('main');
+  if (isIOS) {
+    main.insertBefore($('iphone'), $('android'));
+    $('iphone').classList.add('mine'); $('iphone').querySelector('.foryou').hidden = false;
+    if (/CriOS|FxiOS|EdgiOS|OPiOS|GSA\//.test(ua)) $('notsafari').hidden = false;
+  } else if (isAndroid) {
+    $('android').classList.add('mine'); $('android').querySelector('.foryou').hidden = false;
+  } else {
+    $('desktop').hidden = false;
+    main.insertBefore($('desktop'), $('android'));
+  }
+
+  // is the APK uploaded yet?
+  fetch('mahjong-school.apk', { method: 'HEAD', cache: 'no-store' }).then(r => {
+    if (!r.ok) throw 0;
+  }).catch(() => {
+    $('apkbtn').setAttribute('aria-disabled', 'true');
+    $('apkmissing').hidden = false;
+    $('apksteps').open = false;
+    $('webinstallhelp').hidden = false;
+  });
+
+  // one-tap web install on Android Chrome
+  let deferred = null;
+  window.addEventListener('beforeinstallprompt', e => {
+    e.preventDefault(); deferred = e;
+    $('webinstall').hidden = false; $('webinstallhelp').hidden = true;
+  });
+  $('webinstall').onclick = async () => {
+    if (!deferred) return;
+    deferred.prompt();
+    const choice = await deferred.userChoice.catch(() => null);
+    if (choice && choice.outcome === 'accepted') { $('webinstall').textContent = 'Installed! Check your home screen.'; $('webinstall').disabled = true; }
+    deferred = null;
+  };
+  if (isAndroid) setTimeout(() => { if (!deferred && $('webinstall').hidden) $('webinstallhelp').hidden = false; }, 2500);
+
+  // QR code for computers (needs internet; page works without it)
+  if (!isIOS && !isAndroid) {
+    const s = document.createElement('script');
+    s.src = 'https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js';
+    s.onload = () => { try { new QRCode($('qrcode'), { text: location.href.split('#')[0], width: 140, height: 140 }); } catch (e) { $('desktop').hidden = true; } };
+    s.onerror = () => { $('desktop').querySelector('.small').textContent = 'Open this same link on your phone to install.'; $('qrcode').hidden = true; };
+    document.head.appendChild(s);
+  }
+})();
+</script>
+</body>
+</html>
