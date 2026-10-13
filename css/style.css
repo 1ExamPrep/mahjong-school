@@ -542,3 +542,28 @@ main { max-width: 760px; margin: 0 auto; padding: 16px 16px 48px; }
 .installcard > span:first-child { font-size: 26px; }
 .installcard small { display: block; color: var(--muted); font-size: 14px; }
 .msg.bot .tile-row { display: inline-flex; vertical-align: middle; }
+
+/* ---------- quiz pictures ---------- */
+.qfig { display: flex; justify-content: center; margin: 4px 0 10px; }
+.qfig .seatfig { width: 190px; height: auto; }
+.discfig { flex-direction: column; align-items: center; gap: 2px; }
+.discfig span { font-size: 12px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; }
+.seqfig { gap: 4px; flex-wrap: nowrap; }
+.seqfig span { flex: 1; max-width: 52px; border: 2px dashed var(--line); border-radius: 9px; padding: 4px 2px; text-align: center; display: flex; flex-direction: column; }
+.seqfig small { font-size: 9.5px; color: var(--muted); }
+.seqfig b { font-size: 12px; }
+.seqfig span.known { border-style: solid; border-color: var(--ok); background: var(--ok-bg); }
+.seqfig span.on { border-style: solid; border-color: var(--felt); background: color-mix(in srgb, var(--felt) 12%, var(--surface)); }
+
+.passfig { align-items: center; gap: 8px; }
+.passfig .parr { font-size: 26px; color: #e5484d; font-weight: 900; }
+.passfig .pseat { font-size: 12px; font-weight: 800; text-transform: uppercase; color: var(--muted); }
+.cardline.mini { font-size: 16px; padding: 6px 10px; margin: 0; }
+.qfig .tile-row { margin: 0; }
+.qfig .seatfig { width: 210px; }
+
+/* Pick your hand: options are card lines */
+#opts .opt .pline { width: 100%; }
+#opts .opt:has(.pline) { flex-direction: column; align-items: stretch; }
+.cntlist { margin: 6px 0; padding-left: 20px; }
+.cntlist li { margin: 2px 0; }

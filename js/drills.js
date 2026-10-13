@@ -459,6 +459,81 @@ const fam = (name, items) => ({ name, items });
 const genFam = (name, gen) => ({ name, gen: () => { const q = gen(); if (!q.sig) q.sig = name + ':' + q.prompt + '|' + q.options[q.answer]; return q; } });
 const tilesHtml = (arr, size) => `[[${arr.join(' ')}|${size || 40}]]`;
 
+/* ---------- pictures for questions ---------- */
+const SEAT_POS = { East: [110, 196], South: [196, 110], West: [110, 24], North: [24, 110] };
+const ROLE_COL = { disc: '#e5484d', mj: '#d4a017', pung: '#2e8b6e', call: '#2e8b6e', you: '#1f5c46', ask: '#3b82f6', partner: '#8a5a1c', empty: '#9aa49c' };
+// roles: { East: { t: 'discards', k: 'disc' } }, center: text in the middle of the table
+function seatFig(roles, center) {
+  roles = roles || {};
+  let g = `<rect x="58" y="58" width="104" height="104" rx="14" fill="var(--feltbg, #1f5c46)"/>`;
+  if (center) g += `<text x="110" y="110" font-size="12" font-weight="800" fill="#fff" text-anchor="middle" dominant-baseline="central">${center}</text>`;
+  Object.entries(SEAT_POS).forEach(([n, [x, y]]) => {
+    const r = roles[n], col = r ? ROLE_COL[r.k] || '#1f5c46' : null;
+    g += `<circle cx="${x}" cy="${y}" r="21" fill="${col || 'var(--surface2, #f3f3f3)'}" stroke="${col || 'var(--line, #ccc)'}" stroke-width="2"/>`;
+    g += `<text x="${x}" y="${y}" font-size="10.5" font-weight="800" text-anchor="middle" dominant-baseline="central" fill="${col ? '#fff' : 'var(--ink, #222)'}">${n}</text>`;
+    if (r && r.t) {
+      const ty = n === 'West' ? y - 31 : y + 31;
+      const tx = n === 'South' ? x + 8 : n === 'North' ? x - 8 : x;
+      g += `<rect x="${tx - 34}" y="${ty - 9}" width="68" height="18" rx="9" fill="${col}"/>`;
+      g += `<text x="${tx}" y="${ty}" font-size="9.5" font-weight="800" text-anchor="middle" dominant-baseline="central" fill="#fff">${r.t}</text>`;
+    }
+  });
+  return `<div class="qfig"><svg class="seatfig" viewBox="-26 -26 272 272" role="img" aria-label="Table seats">${g}</svg></div>`;
+}
+const DIE_P = { 1: [4], 2: [0, 8], 3: [0, 4, 8], 4: [0, 2, 6, 8], 5: [0, 2, 4, 6, 8], 6: [0, 2, 3, 5, 6, 8] };
+function diceFig(a, b) {
+  const die = (v, x) => `<rect x="${x}" y="4" width="52" height="52" rx="11" fill="#fffdf7" stroke="#d6ccb3" stroke-width="1.5"/>` +
+    DIE_P[v].map(i => `<circle cx="${x + 12 + (i % 3) * 14}" cy="${16 + Math.floor(i / 3) * 14}" r="4.6" fill="${v === 1 || v === 4 ? '#c62828' : '#1b2333'}"/>`).join('');
+  return `<div class="qfig"><svg viewBox="0 0 128 60" width="128" height="60" role="img" aria-label="Dice ${a} and ${b}">${die(a, 6)}${die(b, 70)}</svg></div>`;
+}
+function seqFig(hi, known) {
+  const lab = ['1st R', '1st A', '1st L', '2nd L', '2nd A', '2nd R', 'Court.'];
+  return `<div class="qfig seqfig">${CH_SEQ.map((d, i) => `<span class="${i === hi ? 'on' : ''}${i < (known || 0) ? ' known' : ''}"><small>${i < 3 ? '1st' : i < 6 ? '2nd' : 'Court.'}</small><b>${i < (known || 0) ? d : i === hi ? '?' : '·'}</b></span>`).join('')}</div>`;
+}
+function discardFig(t, label) { return `<div class="qfig discfig">[[${t}|54]]<span>${label || 'Latest discard'}</span></div>`; }
+function autoFig(prompt) {
+  const text = prompt.replace(/<[^>]+>/g, ' ');
+  const counting = /how many|fewest|the most|how much/i.test(text);
+  if (counting) { const w = text.match(/(\d+) tiles (left|in the wall)/i); return w && /wall/i.test(text) ? wallFig(+w[1]) : ''; }
+  const codes = [];
+  const add = c => { if (!codes.includes(c) && codes.length < 5) codes.push(c); };
+  let m; const re = /\b([1-9]) (Bam|Crak|Dot)s?\b/g;
+  while ((m = re.exec(text))) add({ Bam: 'b', Crak: 'c', Dot: 'd' }[m[2]] + m[1]);
+  if (/\bNEWS\b/.test(text)) ['N', 'E', 'W', 'S'].forEach(add);
+  if (/Red Dragon/i.test(text)) add('DR');
+  if (/Green Dragon/i.test(text)) add('DG');
+  if (/White Dragon|\bsoap\b/i.test(text)) add('DW');
+  if (/\bbird\b/i.test(text)) add('b1');
+  if (/\bflowers?\b/i.test(text)) add('F');
+  if (/\bjokers?\b/i.test(text)) add('J');
+  if (codes.length) return `<div class="qfig">[[${codes.join(' ')}|44]]</div>`;
+  // topic pictures when no tile is named
+  const wl = text.match(/(\d+) tiles (left|in the wall)/i);
+  if (wl && /wall/i.test(text)) return wallFig(+wl[1]);
+  if (/\bkong\b/i.test(text)) return `<div class="qfig">[[c8 c8 c8 c8|40]]</div>`;
+  if (/\bquint\b/i.test(text)) return `<div class="qfig">[[d3 d3 d3 d3 J|38]]</div>`;
+  if (/\bpung\b/i.test(text)) return `<div class="qfig">[[b5 b5 b5|40]]</div>`;
+  if (/\bpairs?\b/i.test(text)) return `<div class="qfig">[[d4 d4|40]]</div>`;
+  if (/charleston|\bpass(es|ed|ing)?\b/i.test(text)) return passFig();
+  if (/\bexpos/i.test(text)) return `<div class="qfig discfig">[[c7 c7 c7|38]]<span>exposed group</span></div>`;
+  if (/mah jongg|\bwins?\b|winning|winner/i.test(text)) return `<div class="qfig discfig">[[F F d2 d2 d2 d2 d4 d4 d6 d6 d8 d8 d8 d8|21]]<span>a winning hand: 14 tiles</span></div>`;
+  const seatsNamed = ['East', 'South', 'West', 'North'].filter(n => new RegExp('\\b' + n + '\\b').test(text));
+  if (seatsNamed.length) { const r = {}; seatsNamed.forEach(n => { r[n] = { k: 'ask' }; }); return seatFig(r); }
+  if (/\bwalls?\b/i.test(text)) return wallFig(null);
+  if (/discard|\bcall/i.test(text)) return discardFig('d7', 'a discard');
+  if (/\bcard\b|\bline\b/i.test(text)) return `<div class="qfig"><div class="cardline mini"><span class="ln-n">FF</span> <span class="ln-a">2222</span> <span class="ln-a">44</span> <span class="ln-a">66</span> <span class="ln-a">8888</span> <span class="ln-tag">X</span></div></div>`;
+  return '';
+}
+function wallFig(left) {
+  const n = 38, full = left == null ? n : Math.max(0, Math.round(left / 4));
+  let g = '';
+  for (let i = 0; i < n; i++) g += `<rect x="${i * 7}" y="0" width="6" height="12" rx="1.5" fill="${i < full ? '#2e8b6e' : 'none'}" stroke="${i < full ? '#14503d' : '#9aa49c'}" stroke-width=".8" ${i < full ? '' : 'stroke-dasharray="2 1.5"'}/>`;
+  return `<div class="qfig discfig"><svg viewBox="-1 -1 268 14" width="268" height="14" role="img" aria-label="The wall">${g}</svg><span>${left == null ? 'the wall' : left + ' tiles left in the wall'}</span></div>`;
+}
+function passFig() {
+  return `<div class="qfig passfig">[[X|30]]<span class="parr">➜</span><span class="pseat">Charleston pass</span></div>`;
+}
+
 /* ---------- extra hand-written questions ---------- */
 SETUP_BANK.push(
   { q: 'Some sets come with blank tiles and extra jokers. What do you do with them?', a: 'Put them back in the box', w: ['Use them as extra jokers', 'Use them as soap', 'Give them to East'], e: 'You play with exactly 152 tiles.' },
@@ -798,16 +873,16 @@ function famsSetup() {
     .map(([w, n]) => Q('s-tot:' + w, `<p class="q">How many ${w} are there?</p>`, String(n), [36, 16, 12, 8, 152, 108, 144, 9, 4, 27].filter(x => x !== n).slice(0, 5).map(String).sort(() => Math.random() - .5).slice(0, 3), `There are ${n} ${w}.`));
   const seats = [];
   SEATS.forEach(s => {
-    seats.push(Q('s-next:' + s, `<p class="q">It\'s ${s}\'s turn. Who goes next?</p>`, rightOf(s), SEATS.filter(x => x !== s), `Turns move to the right: East, South, West, North.`));
-    seats.push(Q('s-prev:' + s, `<p class="q">${s} is about to play. Who played just before?</p>`, leftOf(s), SEATS.filter(x => x !== s), `The player before you is on your left.`));
-    seats.push(Q('s-across:' + s, `<p class="q">Who sits across from ${s}?</p>`, acrossOf(s), SEATS.filter(x => x !== s), 'East and West face each other, and so do South and North.'));
-    seats.push(Q('s-right:' + s, `<p class="q">Who sits on ${s}\'s right?</p>`, rightOf(s), SEATS.filter(x => x !== s), 'Turn order goes East, South, West, North, each to the right.'));
-    seats.push(Q('s-left:' + s, `<p class="q">Who sits on ${s}\'s left?</p>`, leftOf(s), SEATS.filter(x => x !== s), 'Your left neighbor is the one who plays just before you.'));
+    seats.push(Q('s-next:' + s, `${seatFig({ [s]: { t: 'their turn', k: 'ask' } })}<p class="q">It\'s ${s}\'s turn. Who goes next?</p>`, rightOf(s), SEATS.filter(x => x !== s), `Turns move to the right: East, South, West, North.`));
+    seats.push(Q('s-prev:' + s, `${seatFig({ [s]: { t: 'up next', k: 'ask' } })}<p class="q">${s} is about to play. Who played just before?</p>`, leftOf(s), SEATS.filter(x => x !== s), `The player before you is on your left.`));
+    seats.push(Q('s-across:' + s, `${seatFig({ [s]: { k: 'ask' } })}<p class="q">Who sits across from ${s}?</p>`, acrossOf(s), SEATS.filter(x => x !== s), 'East and West face each other, and so do South and North.'));
+    seats.push(Q('s-right:' + s, `${seatFig({ [s]: { k: 'ask' } })}<p class="q">Who sits on ${s}\'s right?</p>`, rightOf(s), SEATS.filter(x => x !== s), 'Turn order goes East, South, West, North, each to the right.'));
+    seats.push(Q('s-left:' + s, `${seatFig({ [s]: { k: 'ask' } })}<p class="q">Who sits on ${s}\'s left?</p>`, leftOf(s), SEATS.filter(x => x !== s), 'Your left neighbor is the one who plays just before you.'));
   });
   const dice = [];
   for (let a = 1; a <= 6; a++) for (let b = a; b <= 6; b++) {
     const t = a + b;
-    dice.push(Q(`s-dice:${a}${b}`, `<p class="q">East rolls a ${a} and a ${b}. Where does East break the wall?</p>`,
+    dice.push(Q(`s-dice:${a}${b}`, `${diceFig(a, b)}<p class="q">East rolls a ${a} and a ${b}. Where does East break the wall?</p>`,
       `${t} stacks in from the right end of East\'s own wall`,
       [`${t} stacks in from the left end of East\'s own wall`, `${t} stacks in from the right end of the wall across`, `${t + 1} stacks in from the right end of East\'s own wall`],
       `Add the dice (${t}) and count that many stacks from the right end of East's own wall.`));
@@ -822,7 +897,7 @@ function famsSetup() {
     Q('s-deal7', '<p class="q">How long is each wall?</p>', '19 stacks', ['18 stacks', '17 stacks', '20 stacks'], '19 stacks, two high.')
   ];
   const NEXTW = { East: 'North', North: 'West', West: 'South', South: 'East' };
-  const walls = Object.keys(NEXTW).map(w => Q('s-wall:' + w, `<p class="q">${w}'s wall runs out. Which wall do you take tiles from next?</p>`,
+  const walls = Object.keys(NEXTW).map(w => Q('s-wall:' + w, `${seatFig({ [w]: { t: 'wall empty', k: 'empty' } }, 'Which wall next?')}<p class="q">${w}'s wall runs out. Which wall do you take tiles from next?</p>`,
     `${NEXTW[w]}'s wall`, SEATS.filter(x => x !== w).map(x => `${x}'s wall`),
     'Walls are used to the left (clockwise): East\'s, North\'s, West\'s, South\'s, then back to East\'s.'));
   walls.push(Q('s-wall:first', '<p class="q">Which wall does the deal always start on?</p>', 'East\'s wall, just left of the break', ['North\'s wall', 'The wall across from East', 'Whichever wall is longest'], 'East breaks their own wall and dealing starts just left of the break.'));
@@ -836,21 +911,21 @@ const CH_SEQ = ['Right', 'Across', 'Left', 'Left', 'Across', 'Right', 'Across'];
 const CH_LABEL = ['first Right', 'first Across', 'first Left', 'second Left', 'second Across', 'second Right', 'courtesy Across'];
 function famsCharleston() {
   const dirOpts = ['Right', 'Across', 'Left'];
-  const pos = CH_SEQ.map((d, i) => Q('ch-pos:' + i, `<p class="q">Counting the whole Charleston, including the courtesy pass, which way is the ${ORD[i]} pass?</p>`, d, dirOpts,
+  const pos = CH_SEQ.map((d, i) => Q('ch-pos:' + i, `${seqFig(i, 0)}<p class="q">Counting the whole Charleston, including the courtesy pass, which way is the ${ORD[i]} pass?</p>`, d, dirOpts,
     'The full order: Right, Across, Left, then Left, Across, Right, then the courtesy pass Across.'));
-  const next = CH_SEQ.slice(0, 6).map((d, i) => Q('ch-next:' + i, `<p class="q">You just finished the ${CH_LABEL[i]} pass. Which way is the next pass?</p>`, CH_SEQ[i + 1], dirOpts,
+  const next = CH_SEQ.slice(0, 6).map((d, i) => Q('ch-next:' + i, `${seqFig(i + 1, i + 1)}<p class="q">You just finished the ${CH_LABEL[i]} pass. Which way is the next pass?</p>`, CH_SEQ[i + 1], dirOpts,
     'Right, Across, Left, Left, Across, Right, then courtesy Across.'));
   const route = [];
   SEATS.forEach(s => {
     [['Right', rightOf(s), leftOf(s)], ['Across', acrossOf(s), acrossOf(s)], ['Left', leftOf(s), rightOf(s)]].forEach(([dir, to, from]) => {
-      route.push(Q(`ch-to:${s}:${dir}`, `<p class="q">You sit ${s}. On ${dir === 'Across' ? 'an' : 'a'} ${dir} pass, who gets your tiles?</p>`, to, SEATS.filter(x => x !== s), dir === 'Across' ? 'On an Across pass your tiles go straight across the table.' : `On a ${dir} pass your tiles go to the player on your ${dir.toLowerCase()}.`));
-      route.push(Q(`ch-from:${s}:${dir}`, `<p class="q">You sit ${s}. On ${dir === 'Across' ? 'an' : 'a'} ${dir} pass, who sends tiles to you?</p>`, from, SEATS.filter(x => x !== s), dir === 'Across' ? 'Across passes are a straight swap.' : `Everyone passes ${dir.toLowerCase()} at once, so yours come from the player on your ${dir === 'Right' ? 'left' : 'right'}.`));
+      route.push(Q(`ch-to:${s}:${dir}`, `${seatFig({ [s]: { t: 'you', k: 'you' } }, dir + ' pass')}<p class="q">You sit ${s}. On ${dir === 'Across' ? 'an' : 'a'} ${dir} pass, who gets your tiles?</p>`, to, SEATS.filter(x => x !== s), dir === 'Across' ? 'On an Across pass your tiles go straight across the table.' : `On a ${dir} pass your tiles go to the player on your ${dir.toLowerCase()}.`));
+      route.push(Q(`ch-from:${s}:${dir}`, `${seatFig({ [s]: { t: 'you', k: 'you' } }, dir + ' pass')}<p class="q">You sit ${s}. On ${dir === 'Across' ? 'an' : 'a'} ${dir} pass, who sends tiles to you?</p>`, from, SEATS.filter(x => x !== s), dir === 'Across' ? 'Across passes are a straight swap.' : `Everyone passes ${dir.toLowerCase()} at once, so yours come from the player on your ${dir === 'Right' ? 'left' : 'right'}.`));
     });
-    route.push(Q('ch-cpart:' + s, `<p class="q">You sit ${s}. Who is your courtesy pass partner?</p>`, acrossOf(s), SEATS.filter(x => x !== s), 'The courtesy pass is with the player across.'));
+    route.push(Q('ch-cpart:' + s, `${seatFig({ [s]: { t: 'you', k: 'you' } }, 'Courtesy')}<p class="q">You sit ${s}. Who is your courtesy pass partner?</p>`, acrossOf(s), SEATS.filter(x => x !== s), 'The courtesy pass is with the player across.'));
   });
   const court = [];
   for (let a = 0; a <= 3; a++) for (let b = 0; b <= 3; b++) {
-    court.push(Q(`ch-court:${a}${b}`, `<p class="q">Courtesy pass: you want to trade ${a}, the player across wants ${b}. How many do you each pass?</p>`, String(Math.min(a, b)), ['0', '1', '2', '3'], 'The smaller number wins.'));
+    court.push(Q(`ch-court:${a}${b}`, `${seatFig({ East: { t: 'you: ' + a, k: 'you' }, West: { t: 'across: ' + b, k: 'partner' } }, 'Courtesy')}<p class="q">Courtesy pass: you want to trade ${a}, the player across wants ${b}. How many do you each pass?</p>`, String(Math.min(a, b)), ['0', '1', '2', '3'], 'The smaller number wins.'));
   }
   const blind = [];
   ['first Left', 'second Right'].forEach(p => [1, 2, 3].forEach(k => blind.push(Q(`ch-blind:${p}:${k}`,
@@ -899,7 +974,7 @@ function famsTurn() {
       const h = 13 - e + dl;
       if (h < 1) return;
       const ans = dl === 0 ? 'That\'s right' : dl > 0 ? 'Too many tiles' : 'Too few tiles';
-      check.push(Q(`t-chk:${sz.join('')}:${dl}`, `${expHtml(sz)}<p class="q">It\'s between turns and you have <b>${h}</b> hidden tiles. Is your count right?</p>`,
+      check.push(Q(`t-chk:${sz.join('')}:${dl}`, `${expHtml(sz)}<div class="qfig discfig">[[${Array(h).fill('X').join(' ')}|18]]<span>${h} hidden</span></div><p class="q">It\'s between turns and you have <b>${h}</b> hidden tiles. Is your count right?</p>`,
         ans, ['That\'s right', 'Too many tiles', 'Too few tiles'], `Between turns you need 13 in all. ${e} exposed + ${h} hidden = ${e + h}.`));
     });
   });
@@ -923,7 +998,7 @@ function famsCalls() {
       const need = s - 1, ok = nat + jok >= need;
       const rack = Array(nat).fill(t).concat(Array(jok).fill('J'));
       xcalls.push(Q(`k-x:${t}:${s}:${nat}:${jok}`,
-        `<p class="small">The latest discard is the <b>${tn(t)}</b>. Your X line needs a <b>${SIZE_NAME[s]}</b> of ${tnp(t)}. These are on your rack:</p>${tilesHtml(rack, 40)}<p class="q">Can you call it?</p>`,
+        `${discardFig(t)}<p class="small">The latest discard is the <b>${tn(t)}</b>. Your X line needs a <b>${SIZE_NAME[s]}</b> of ${tnp(t)}. These are on your rack:</p>${tilesHtml(rack, 40)}<p class="q">Can you call it?</p>`,
         ok ? `Yes, expose ${s} tiles` : 'No, not enough supporting tiles',
         [`Yes, expose ${s} tiles`, 'No, not enough supporting tiles', 'Yes, take it now and finish the group later', 'No, jokers can\'t be used in a call'],
         `A ${SIZE_NAME[s]} call needs ${need} supporting tiles from your rack. You have ${nat + jok}${jok ? ' (jokers count)' : ''}.`));
@@ -931,13 +1006,13 @@ function famsCalls() {
   }));
   const ccalls = [];
   GROUPABLE.forEach(t => [false, true].forEach(wins => ccalls.push(Q(`k-c:${t}:${wins}`,
-    `<p class="small">The latest discard is the <b>${tn(t)}</b>. You\'re going for a <b>C (concealed)</b> line that has a pung of ${tnp(t)}. ${wins ? 'It\'s the very last tile your hand needs.' : 'Your hand still has other empty spots.'}</p><p class="q">Can you call it?</p>`,
+    `${discardFig(t)}<p class="small">The latest discard is the <b>${tn(t)}</b>. You\'re going for a <b>C (concealed)</b> line that has a pung of ${tnp(t)}. ${wins ? 'It\'s the very last tile your hand needs.' : 'Your hand still has other empty spots.'}</p><p class="q">Can you call it?</p>`,
     wins ? 'Yes, call Mah Jongg' : 'No, C hands can\'t expose',
     ['Yes, call Mah Jongg', 'No, C hands can\'t expose', 'Yes, expose the pung', 'Only with a joker'],
     wins ? 'Any hand can call the tile that wins it.' : 'A concealed hand can only call its winning tile.'))));
   const pairs = [];
   GROUPABLE.forEach(t => [false, true].forEach(wins => pairs.push(Q(`k-p:${t}:${wins}`,
-    `<p class="small">The latest discard is the <b>${tn(t)}</b>. You hold one ${tn(t)} and it would make a pair your line needs. ${wins ? 'That pair is the last thing your hand needs.' : 'Other spots in your hand are still empty.'}</p><p class="q">Can you call it?</p>`,
+    `${discardFig(t)}<p class="small">The latest discard is the <b>${tn(t)}</b>. You hold one ${tn(t)} and it would make a pair your line needs. ${wins ? 'That pair is the last thing your hand needs.' : 'Other spots in your hand are still empty.'}</p><p class="q">Can you call it?</p>`,
     wins ? 'Yes, for Mah Jongg' : 'No, pairs can only be called to win',
     ['Yes, for Mah Jongg', 'No, pairs can only be called to win', 'Yes, expose the pair', 'Yes, with a joker'],
     wins ? 'A pair or single can be called only when it finishes the whole hand.' : 'You can only call a pair or single when it finishes the whole hand.'))));
@@ -960,7 +1035,7 @@ function famsTiming() {
           win = dist(a) < dist(b) ? a : b; why = `Same kind of call, so the player next in turn after ${d} wins it. Turns go ${d}, ${rightOf(d)}, ${acrossOf(d)}, ${leftOf(d)}.`;
         }
         prio.push(Q(`ti-p:${d}:${a}${ta}:${b}${tb}`,
-          `<p class="small">${d} discards. At the same moment, ${a} calls it for ${name(ta)} and ${b} calls it for ${name(tb)}. Nobody has exposed anything yet.</p><p class="q">Who gets the tile?</p>`,
+          `${seatFig({ [d]: { t: 'discards', k: 'disc' }, [a]: { t: ta === 'MJ' ? 'Mah Jongg' : 'pung', k: ta === 'MJ' ? 'mj' : 'pung' }, [b]: { t: tb === 'MJ' ? 'Mah Jongg' : 'pung', k: tb === 'MJ' ? 'mj' : 'pung' } })}<p class="small">${d} discards. At the same moment, ${a} calls it for ${name(ta)} and ${b} calls it for ${name(tb)}. Nobody has exposed anything yet.</p><p class="q">Who gets the tile?</p>`,
           win, [a, b, d, 'Whoever spoke first'], why));
       });
     }
@@ -970,11 +1045,11 @@ function famsTiming() {
     const others = SEATS.filter(x => x !== d);
     others.forEach(m => {
       const rest = others.filter(x => x !== m);
-      three.push(Q(`ti-3a:${d}:${m}`, `<p class="small">${d} discards. ${m} calls it for Mah Jongg. ${rest[0]} and ${rest[1]} both call it for a pung.</p><p class="q">Who gets the tile?</p>`,
+      three.push(Q(`ti-3a:${d}:${m}`, `${seatFig({ [d]: { t: 'discards', k: 'disc' }, [m]: { t: 'Mah Jongg', k: 'mj' }, [rest[0]]: { t: 'pung', k: 'pung' }, [rest[1]]: { t: 'pung', k: 'pung' } })}<p class="small">${d} discards. ${m} calls it for Mah Jongg. ${rest[0]} and ${rest[1]} both call it for a pung.</p><p class="q">Who gets the tile?</p>`,
         m, others.concat(['Whoever spoke first']), 'Mah Jongg beats every call to expose, no matter the seat.'));
       const dist = s => (SEATS.indexOf(s) - SEATS.indexOf(d) + 4) % 4;
       const win = dist(rest[0]) < dist(rest[1]) ? rest[0] : rest[1];
-      three.push(Q(`ti-3b:${d}:${m}`, `<p class="small">${d} discards. ${rest[0]} and ${rest[1]} both call it for Mah Jongg. ${m} calls it for a pung.</p><p class="q">Who gets the tile?</p>`,
+      three.push(Q(`ti-3b:${d}:${m}`, `${seatFig({ [d]: { t: 'discards', k: 'disc' }, [m]: { t: 'pung', k: 'pung' }, [rest[0]]: { t: 'Mah Jongg', k: 'mj' }, [rest[1]]: { t: 'Mah Jongg', k: 'mj' } })}<p class="small">${d} discards. ${rest[0]} and ${rest[1]} both call it for Mah Jongg. ${m} calls it for a pung.</p><p class="q">Who gets the tile?</p>`,
         win, others.concat(['Whoever spoke first']), `Two Mah Jongg calls, so the one next in turn after ${d} wins it.`));
     });
   });
@@ -988,15 +1063,15 @@ function famsTiming() {
   windows.push(Q('ti-w:touch', '<p class="small">The discard touched the table before it was named.</p><p class="q">Is the window to call it open?</p>', 'Yes', ['Yes', 'No, not until it\'s named'], 'Named or touching the table, whichever comes first.'));
   const after = [], skipped = [];
   SEATS.forEach(d => SEATS.filter(c => c !== d).forEach(c => {
-    after.push(Q(`ti-a:${d}:${c}`, `<p class="small">${d} discards and ${c} calls it, exposes, and discards.</p><p class="q">Who plays next?</p>`, rightOf(c), SEATS.filter(x => x !== c),
+    after.push(Q(`ti-a:${d}:${c}`, `${seatFig({ [d]: { t: 'discards', k: 'disc' }, [c]: { t: 'calls', k: 'call' } })}<p class="small">${d} discards and ${c} calls it, exposes, and discards.</p><p class="q">Who plays next?</p>`, rightOf(c), SEATS.filter(x => x !== c),
       `Play continues from the caller, so the next turn goes to the player on ${c}'s right.`));
     const skip = []; let s = rightOf(d); while (s !== c) { skip.push(s); s = rightOf(s); }
     const ans = skip.length ? skip.join(' and ') : 'Nobody';
     const wr = ['Nobody', d].concat(SEATS.filter(x => x !== d && x !== c)).concat([SEATS.filter(x => x !== d && x !== c).join(' and ')]);
-    skipped.push(Q(`ti-s:${d}:${c}`, `<p class="small">${d} discards and ${c} calls it.</p><p class="q">Who loses a turn?</p>`, ans, wr,
+    skipped.push(Q(`ti-s:${d}:${c}`, `${seatFig({ [d]: { t: 'discards', k: 'disc' }, [c]: { t: 'calls', k: 'call' } })}<p class="small">${d} discards and ${c} calls it.</p><p class="q">Who loses a turn?</p>`, ans, wr,
       skip.length ? `Anyone between ${d} and ${c} in turn order gets skipped, with no make-up turn.` : `${c} was next anyway, so nobody is skipped.`));
   }));
-  const normal = SEATS.map(d => Q('ti-n:' + d, `<p class="small">${d} discards and nobody calls it.</p><p class="q">Who draws next?</p>`, rightOf(d), SEATS.filter(x => x !== d), 'The player on the discarder\'s right.'));
+  const normal = SEATS.map(d => Q('ti-n:' + d, `${seatFig({ [d]: { t: 'discards', k: 'disc' } })}<p class="small">${d} discards and nobody calls it.</p><p class="q">Who draws next?</p>`, rightOf(d), SEATS.filter(x => x !== d), 'The player on the discarder\'s right.'));
   return [fam('priority', prio), fam('three-calls', three), fam('window', windows), fam('after-call', after), fam('skipped', skipped), fam('normal', normal), bankFam('bank', TIMING_BANK)];
 }
 
@@ -1043,7 +1118,7 @@ function famsErrors() {
     [['between turns', 13], ['right after drawing', 14]].forEach(([when, total]) => [-1, 0, 1].forEach(dl => {
       const h = total - e + dl;
       if (h < 1) return;
-      counts.push(Q(`e-cnt:${sz.join('')}:${total}:${dl}`, `${expHtml(sz, 'This player\'s exposures')}<p class="small">It\'s ${when} and this player has <b>${h}</b> hidden tiles.</p><p class="q">What\'s the problem, if any?</p>`,
+      counts.push(Q(`e-cnt:${sz.join('')}:${total}:${dl}`, `${expHtml(sz, 'This player\'s exposures')}<div class="qfig discfig">[[${Array(h).fill('X').join(' ')}|18]]<span>${h} hidden</span></div><p class="small">It\'s ${when} and this player has <b>${h}</b> hidden tiles.</p><p class="q">What\'s the problem, if any?</p>`,
         dl === 0 ? 'Nothing, the count is right' : dl > 0 ? 'Too many tiles, the hand may be dead' : 'Too few tiles, the hand may be dead',
         ['Nothing, the count is right', 'Too many tiles, the hand may be dead', 'Too few tiles, the hand may be dead'],
         `${when === 'between turns' ? 'Between turns' : 'Right after drawing'} the total should be ${total}. Here it\'s ${e} + ${h} = ${e + h}.`));
@@ -1062,21 +1137,46 @@ function famsErrors() {
 
 // Choosing hands
 function famsChoose() {
-  const cmp = [];
-  for (let j = 0; j <= 2; j++) for (let a = 0; a <= 3; a++) for (let b = 0; b <= 4; b++) for (let c = 0; c <= 3; c++) for (let d = 0; d <= 4; d++) {
-    const nA = a + Math.max(0, b - j), nB = c + Math.max(0, d - j);
-    if (Math.abs(nA - nB) < 1 || (a === c && b === d)) continue;
-    const best = nA < nB ? 'Line A' : 'Line B';
-    cmp.push(Q(`ch-cmp:${j}${a}${b}${c}${d}`,
-      `<p class="small">You hold <b>${j}</b> spare ${plural(j, 'joker')}.<br>Line A is missing <b>${a}</b> real ${plural(a, 'tile')} (pairs or singles) and <b>${b}</b> ${plural(b, 'spot')} a joker could fill.<br>Line B is missing <b>${c}</b> real ${plural(c, 'tile')} and <b>${d}</b> joker ${plural(d, 'spot')}.</p><p class="q">Which line are you closer to?</p>`,
-      best, ['Line A', 'Line B'],
-      `Use your jokers on joker spots first. Line A still needs ${nA} ${plural(nA, 'tile')}, Line B needs ${nB}.`));
-  }
+  const CS = (typeof window !== 'undefined' && window.CardSchool) || null;
   const useful = [];
   SUITED.forEach(t => { for (let n = 1; n <= 4; n++) for (let s = 1; s <= 5; s++) useful.push(Q(`ch-use:${t}:${n}:${s}`,
     `<p class="small">You hold ${['', 'one', 'two', 'three', 'four'][n]} ${plural(n, tn(t), tnp(t))}. Your line needs ${s === 1 ? `a <b>single</b> ${tn(t)}` : `a <b>${SIZE_NAME[s]}</b> of ${tnp(t)}`}.</p>${tilesHtml(Array(n).fill(t), 40)}<p class="q">How many of them are useful for that group?</p>`,
     String(Math.min(n, s)), ['0', '1', '2', '3', '4'], `Count each tile once, only up to the size of the group (${s}).`)); });
-  return [fam('compare', cmp), fam('useful', useful), bankFam('bank', CHOOSE_BANK)];
+  if (!CS) return [fam('useful', useful), bankFam('bank', CHOOSE_BANK)];
+
+  /* Your 13 tiles + 4 hands from the card: pick the one with the most tiles that match.
+     gap = how much the winner beats the next best (1 = a close race). */
+  const catName = id => CS.CATS.find(c => c.id === id).name;
+  function rackQ(gap) {
+    for (let tries = 0; tries < 80; tries++) {
+      const d = CS.deal(x => x.ranked[0].matched >= 4 && x.ranked[0].matched <= 9 && x.ranked[0].matched > x.ranked[1].matched - 1);
+      const top = d.ranked[0];
+      if (d.ranked[1].matched >= top.matched && d.ranked[1].line.cat !== top.line.cat) continue;
+      const usedCat = new Set([top.line.cat]);
+      const pool = shuffle(d.ranked.slice(1).filter(r => r.matched < top.matched));
+      const others = [];
+      // one close competitor at exactly top - gap, then two more lower ones
+      const close = pool.find(r => r.matched === top.matched - gap && !usedCat.has(r.line.cat));
+      if (!close) continue;
+      others.push(close); usedCat.add(close.line.cat);
+      pool.forEach(r => { if (others.length < 3 && !usedCat.has(r.line.cat) && r.matched < top.matched && r.matched >= 1) { others.push(r); usedCat.add(r.line.cat); } });
+      if (others.length < 3) continue;
+      const opts = shuffle([top].concat(others));
+      const label = r => CS.lineHtml(r.line, `<span class="pl-cat">${catName(r.line.cat)}</span>`);
+      const counts = opts.map((r, k) => `<li>${r === top ? '<b>' : ''}${catName(r.line.cat)}: ${r.matched} ${r.matched === 1 ? 'tile matches' : 'tiles match'}${r === top ? ' (the winner)</b>' : ''}</li>`).join('');
+      return {
+        type: 'choice', lineopts: true,
+        sig: 'ch-rack:' + d.rack.join('') + '|' + opts.map(r => r.line.id).join(','),
+        prompt: `<p class="small">Your 13 tiles</p><div class="prack">${d.rack.map(c => `<span class="rt">${renderTile(c, 34)}</span>`).join('')}</div><p class="q">Which hand matches the most of your tiles?</p><p class="small">Count jokers too, but only in groups of 3 or more.</p>`,
+        options: opts.map(label),
+        answer: opts.indexOf(top),
+        explain: `The hand with the most matching tiles wins. ${top.matched} beats ${close.matched}.<ul class="cntlist">${counts}</ul>${top.line.vars ? `This hand lets you choose the numbers. With your tiles it works best starting at <b>${top.x}</b>, not the ${top.line.vars[0]} printed on the card. ` : ''}The winner, built from your tiles (faded tiles are still missing):${CS.buildHtml(top, 24)}`
+      };
+    }
+    return null;
+  }
+  const rackFam = (name, gap) => ({ name, gen: () => rackQ(gap) || rackQ(1) });
+  return [rackFam('rack-close', 1), rackFam('rack-clear', 2), rackFam('rack-close2', 1), rackFam('rack-mid', 3), fam('useful', useful), bankFam('bank', CHOOSE_BANK)];
 }
 
 // Pivots
@@ -1084,10 +1184,10 @@ function famsPivots() {
   const size = [], conc = [];
   GROUPABLE.forEach(t => {
     [3, 4, 5].forEach(s1 => [3, 4, 5].forEach(s2 => size.push(Q(`pv-sz:${t}:${s1}:${s2}`,
-      `<p class="small">You exposed a <b>${SIZE_NAME[s1]}</b> of ${tnp(t)}. Another X line needs a <b>${SIZE_NAME[s2]}</b> of ${tnp(t)}.</p><p class="q">Can you switch to it?</p>`,
+      `<div class="qfig">${tilesHtml(Array.from({ length: s1 }, (_, i) => i < 3 || (s1 === 4 && i < 4) ? t : 'J'), 38)}</div><p class="small">You exposed a <b>${SIZE_NAME[s1]}</b> of ${tnp(t)}. Another X line needs a <b>${SIZE_NAME[s2]}</b> of ${tnp(t)}.</p><p class="q">Can you switch to it?</p>`,
       s1 === s2 ? 'Yes, the exposure fits' : 'No, the size is locked', ['Yes, the exposure fits', 'No, the size is locked'],
       s1 === s2 ? 'Same tile, same size. It fits.' : 'An exposure can\'t grow or shrink, so it has to match exactly.'))));
-    [3, 4].forEach(s1 => conc.push(Q(`pv-c:${t}:${s1}`, `<p class="small">You exposed a ${SIZE_NAME[s1]} of ${tnp(t)}.</p><p class="q">Can you switch to a C (concealed) line?</p>`,
+    [3, 4].forEach(s1 => conc.push(Q(`pv-c:${t}:${s1}`, `<div class="qfig">${tilesHtml(Array(s1).fill(t), 38)}</div><p class="small">You exposed a ${SIZE_NAME[s1]} of ${tnp(t)}.</p><p class="q">Can you switch to a C (concealed) line?</p>`,
       'No', ['No', 'Yes, if it uses that group', 'Yes, any C line'], 'Once you expose, concealed lines are off the table.')));
   });
   return [fam('size', size), fam('concealed', conc), bankFam('bank', PIVOT_BANK)];
@@ -1110,13 +1210,13 @@ function famsReading() {
 function famsDefense() {
   const ad = [];
   [8, 12, 16, 20].forEach(W => [5, 6, 7].forEach(N => [2, 3].forEach(o => ad.push(Q(`d-ad:${W}:${N}:${o}`,
-    `<p class="small">The wall has <b>${W}</b> tiles left. You still need <b>${N}</b> tiles. An opponent shows <b>${o}</b> exposures.</p><p class="q">What should you focus on?</p>`,
+    `${wallFig(W)}<p class="small">The wall has <b>${W}</b> tiles left. You still need <b>${N}</b> tiles. An opponent shows <b>${o}</b> exposures.</p><p class="q">What should you focus on?</p>`,
     'Defense: don\'t feed their win', ['Defense: don\'t feed their win', 'Attack: push for your own hand'], 'You\'re far away, time is short, and someone looks close. Play safe.')))));
   [44, 52, 60, 68, 76].forEach(W => [0, 1].forEach(o => [1, 2].forEach(N => ad.push(Q(`d-ad:${W}:${N}:${o}`,
-    `<p class="small">The wall has <b>${W}</b> tiles left. You need just <b>${N}</b> more ${plural(N, 'tile')}. Opponents show <b>${o}</b> ${plural(o, 'exposure')}.</p><p class="q">What should you focus on?</p>`,
+    `${wallFig(W)}<p class="small">The wall has <b>${W}</b> tiles left. You need just <b>${N}</b> more ${plural(N, 'tile')}. Opponents show <b>${o}</b> ${plural(o, 'exposure')}.</p><p class="q">What should you focus on?</p>`,
     'Attack: push for your own hand', ['Defense: don\'t feed their win', 'Attack: push for your own hand'], 'You\'re close and there\'s plenty of time. Play to win.')))));
   const turns = [];
-  for (let W = 8; W <= 84; W += 4) turns.push(Q(`d-turns:${W}`, `<p class="small">There are <b>${W}</b> tiles left in the wall, and all four players are drawing.</p><p class="q">About how many more draws will you get?</p>`,
+  for (let W = 8; W <= 84; W += 4) turns.push(Q(`d-turns:${W}`, `${wallFig(W)}<p class="small">There are <b>${W}</b> tiles left in the wall, and all four players are drawing.</p><p class="q">About how many more draws will you get?</p>`,
     String(W / 4), uniqueNums(W / 4, [W / 4 - 2, W / 4 + 2, W / 2, W / 4 + 4, W / 4 - 1], 3).map(String), 'Each round of play uses about four tiles, one per player.'));
   const jd = GROUPABLE.map(t => Q('d-jd:' + t, `<p class="small">You\'re far from winning and the wall is short. You must discard one of these. The ${tn(t)} fits an opponent\'s exposures. You don\'t need the joker.</p>${tilesHtml([t, 'J'], 56)}<p class="q">Which is the safer discard?</p>`,
     'The joker', ['The joker', `The ${tn(t)}`], 'Nobody can call a discarded joker, so it\'s always a safe throw.'));
@@ -1179,13 +1279,14 @@ function makeTest(id, seenArr) {
         const c = f.items.filter(x => !seenSet.has(x.h) && !used.has(x.h));
         if (c.length) q = pick(c);
       } else {
-        for (let t = 0; t < 40 && !q; t++) { const g = f.gen(); g.h = qHash(g.sig); if (!seenSet.has(g.h) && !used.has(g.h)) q = g; }
+        for (let t = 0; t < 40 && !q; t++) { const g = f.gen(); if (!g) continue; g.h = qHash(g.sig); if (!seenSet.has(g.h) && !used.has(g.h)) q = g; }
       }
       if (q) { out.push(q); used.add(q.h); progressed = true; }
     }
     if (!progressed) { if (!seen.length) break; const h = seen.shift(); seenSet.delete(h); }
     order = shuffle(order);
   }
+  out.forEach(q => { if (q.prompt && !q.grid && !/\[\[|<svg|qfig|pline|cardline|money/.test(q.prompt)) { const f = autoFig(q.prompt); if (f) q.prompt = f + q.prompt; } });
   return { qs: shuffle(out), seen, total: all.size, hasGen };
 }
 function markSeen(seen, h) {
