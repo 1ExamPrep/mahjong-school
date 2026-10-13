@@ -541,3 +541,4 @@ main { max-width: 760px; margin: 0 auto; padding: 16px 16px 48px; }
 .installcard { display: flex; gap: 12px; align-items: center; margin-top: 22px; padding: 14px; background: var(--surface); border: 2px dashed var(--felt); border-radius: var(--radius); text-decoration: none; }
 .installcard > span:first-child { font-size: 26px; }
 .installcard small { display: block; color: var(--muted); font-size: 14px; }
+.msg.bot .tile-row { display: inline-flex; vertical-align: middle; }
