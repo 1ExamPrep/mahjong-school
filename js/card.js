@@ -255,7 +255,7 @@
   }
   const tw = (c, size, cls) => `<span class="tw ${cls || ''}">${renderTile(c, size)}</span>`;
   function buildHtml(r, size) {
-    size = size || 24;
+    size = size || 32;
     return '<div class="build">' + r.fill.map(f => {
       let s = '';
       for (let i = 0; i < f.n; i++) {
@@ -270,7 +270,7 @@
     const x = line.vars ? line.vars[0] : 0, p = perms(Math.max(1, kColors(line)))[0];
     return '<div class="build">' + flat(line).map(g => {
       const t = tileOf(g, x, p); let s = '';
-      for (let i = 0; i < g.n; i++) s += tw(i >= 4 && t !== 'F' ? 'J' : t, 24);
+      for (let i = 0; i < g.n; i++) s += tw(i >= 4 && t !== 'F' ? 'J' : t, 32);
       return `<span class="bgrp">${s}</span>`;
     }).join('') + '</div>';
   }
@@ -507,7 +507,7 @@
         app.querySelector('#fb').innerHTML = `<div class="fb ${ok ? 'ok' : 'no'}"><b>${myBest === bestM ? 'You found the best hand' : ok ? 'Good pick, within one tile of the best' : 'There was a closer hand'}</b>
           <p>Your best pick has ${myBest} tiles that fit. The best on the card has ${bestM}.</p></div>
           <h3 class="catttl">Top 3 for this rack</h3>
-          ${top.map(r => `<div class="topcard${picks.includes(r.line.id) ? ' mine' : ''}">${lineHtml(r.line, `<span class="pl-cat">${catName(r.line.cat)}</span>`)}${buildHtml(r, 22)}<p class="small">${summary(r)}${picks.includes(r.line.id) ? ' <b>You picked this one.</b>' : ''}</p></div>`).join('')}
+          ${top.map(r => `<div class="topcard${picks.includes(r.line.id) ? ' mine' : ''}">${lineHtml(r.line, `<span class="pl-cat">${catName(r.line.cat)}</span>`)}${buildHtml(r, 30)}<p class="small">${summary(r)}${picks.includes(r.line.id) ? ' <b>You picked this one.</b>' : ''}</p></div>`).join('')}
           ${tip()}${nextBtn(st)}`;
         app.querySelector('#gnext').onclick = () => finish(ok);
         app.querySelector('#fb').scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -551,7 +551,7 @@
         app.querySelector('#rk').innerHTML = rackHtml(d.rack, { used, marked: sel });
         app.querySelector('#fb').innerHTML = `<div class="fb ${ok ? 'ok' : 'no'}"><b>${ok ? 'Good pass' : bad.length === 1 ? 'One of those tiles was useful' : bad.length + ' of those tiles were useful'}</b>
           <p>Lit-up tiles fit at least one of your two hands. Faded ones fit neither, so those are the safe ones to pass.${bad.length ? ' The tiles you picked that are lit up should stay.' : ''}</p></div>
-          ${targets.map(r => `<div class="topcard">${lineHtml(r.line)}${buildHtml(r, 22)}</div>`).join('')}${tip()}${nextBtn(st)}`;
+          ${targets.map(r => `<div class="topcard">${lineHtml(r.line)}${buildHtml(r, 30)}</div>`).join('')}${tip()}${nextBtn(st)}`;
         app.querySelector('#gnext').onclick = () => finish(ok);
       };
     }
@@ -591,7 +591,7 @@
   }
 
   window.CardSchool = {
-    CATS, CARD, rankAll, bestFor, countRack, evalInst, usedMap, deal, sortRack,
+    CATS, CARD, rankAll, bestFor, countRack, evalInst, usedMap, deal, sortRack, lineHtml, buildHtml, rackHtml,
     showHub, showCardPage, showLessonPage, playGame,
     LEVELS, dealLevel,
     done: store => [1, 2].every(id => ['find' + id].concat(LEVEL_IDS.map(l => scoreKey(id, l))).some(k => (store.data.drills[k] || 0) >= 80))

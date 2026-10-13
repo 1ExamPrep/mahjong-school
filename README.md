@@ -2,7 +2,7 @@
 
 A mobile-first study app for American Mahjong (NMJL style). 16 lessons from beginner to strategy, a drill after each one, a final quiz, a table reference, and six tile styles to pick from, with Real Tiles as the default.
 
-Starts with a Tile Tour (Step 1) and a card-reading section with four hand-finder games at Easy, Medium and Hard (Step 2), built on an invented practice card. Plain HTML, CSS and JavaScript. No build step, no frameworks, no dependencies.
+Starts with four guided steps: a Tile Tour (Step 1), reading the card with four hand-finder games at Easy, Medium and Hard (Step 2), dice, walls and the deal with a table dice roller (Step 3), and the Charleston with a full passing practice (Step 4). The card practice uses an invented practice card. Plain HTML, CSS and JavaScript. No build step, no frameworks, no dependencies.
 
 ## Put it on GitHub Pages
 
@@ -34,6 +34,7 @@ Then visit `http://localhost:8000`.
 | `js/content.js` | Lesson text and the table reference |
 | `js/drills.js` | Every quiz question and the question generators |
 | `js/card.js` | Step 2: the practice card, the engine that scores any rack against every hand, and the four hand-finder games |
+| `js/steps.js` | Step 3 (dice roller, wall breaking, deal simulator) and Step 4 (Charleston order drill and full passing practice) |
 | `js/app.js` | Pages, the quiz engine, and saved progress |
 | `sw.js` | Offline support |
 | `manifest.webmanifest`, `icon.svg` | Lets phones install it like an app |
@@ -42,7 +43,7 @@ Then visit `http://localhost:8000`.
 
 - **Lesson text:** edit `js/content.js`. Write `[[b5 b5 J]]` anywhere to show tiles. Add a size like `[[DR|48]]`.
   Tile codes: `b1`-`b9` Bams, `c1`-`c9` Craks, `d1`-`d9` Dots, `N E W S` winds, `DR DG DW` dragons (DW is soap), `F` flower, `J` joker.
-- **Questions:** add items to any `_BANK` list in `js/drills.js`. Each is `{ q, a, w: [wrong answers], e: explanation }`.
+- **Questions:** add items to any `_BANK` list in `js/drills.js`. Each is `{ q, a, w: [wrong answers], e: explanation }`. Every test draws from 100+ questions (hand-written plus rule-built families) and remembers what each player has seen, so retakes get new questions and nothing repeats until at least 100 others have been shown.
 - **Tile styles:** each style is one object in `TILE_THEMES` in `js/tiles.js`. Change colors there. Once you pick a favorite, you can set it as the default by moving it to the top of `TILE_THEMES` in `js/tiles.js`.
 - **After any change:** bump `VERSION` in `sw.js` so installed phones get the update.
 

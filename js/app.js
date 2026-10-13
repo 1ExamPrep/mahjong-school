@@ -48,6 +48,8 @@
     if (page === 'card') return CardSchool.showCardPage();
     if (page === 'cardlesson') return CardSchool.showLessonPage();
     if (page === 'find') return CardSchool.playGame(id);
+    if (page === 'step3') return ({ dice: StepsSchool.showDiceTool, break: StepsSchool.showBreakPractice, deal: StepsSchool.showDealPractice }[id] || StepsSchool.showStep3)();
+    if (page === 'step4') return ({ order: StepsSchool.showOrderDrill, pass: StepsSchool.showPassPractice }[id] || StepsSchool.showStep4)();
     showHome();
   }
   window.addEventListener('hashchange', route);
@@ -84,12 +86,14 @@
       <p class="meter-label">${done} of ${total} lessons passed</p>
       ${!Store.data.tourDone ? `<a class="btn primary" href="#/tour/0">Step 1: Tile tour</a>`
         : !CardSchool.done(Store) ? `<a class="btn primary" href="#/finder">Step 2: Read the card and find your hand</a>`
+        : !StepsSchool.step3Done() ? `<a class="btn primary" href="#/step3">Step 3: Dice, walls and the deal</a>`
+        : !StepsSchool.step4Done() ? `<a class="btn primary" href="#/step4">Step 4: The Charleston</a>`
         : next ? `<a class="btn primary" href="#/lesson/${next.id}">${done ? 'Continue' : 'Start'}: ${next.title}</a>` : `<a class="btn primary" href="#/drill/exam">Take the final quiz</a>`}
     </section>`;
     if (!Store.data.themeChosen) {
       html += `<a class="banner" href="#/tiles"><span class="tile-row">${TILE_THEMES.map(t => renderTile('d5', 26, t)).join('')}</span><span><b>Pick your tile style</b><small>Six looks to try. Tap to choose.</small></span></a>`;
     }
-    const s2 = CardSchool.done(Store);
+    const s2 = CardSchool.done(Store), s3 = StepsSchool.step3Done(), s4 = StepsSchool.step4Done();
     html += `<h2 class="stage">Start here</h2><div class="list">
       <a class="card tour-card${Store.data.tourDone ? ' done' : ''}" href="#/tour/0">
         <span class="num">${Store.data.tourDone ? '✓' : '1'}</span>
@@ -99,6 +103,14 @@
         <span class="num">${s2 ? '✓' : '2'}</span>
         <span class="card-body"><b>Step 2: Read the card and find your hand</b><small>Look at 13 tiles, count them against the card, and pick what to go for. Four practice games.</small></span>
         ${s2 ? '<span class="chip ok">Done</span>' : Store.data.tourDone ? '<span class="chip warn">Next</span>' : ''}</a>
+      <a class="card tour-card${s3 ? ' done' : ''}" href="#/step3">
+        <span class="num">${s3 ? '✓' : '3'}</span>
+        <span class="card-body"><b>Step 3: Dice, walls and the deal</b><small>Pick East, break the wall with the dice, and deal. Includes a dice roller for real games.</small></span>
+        ${s3 ? '<span class="chip ok">Done</span>' : s2 ? '<span class="chip warn">Next</span>' : ''}</a>
+      <a class="card tour-card${s4 ? ' done' : ''}" href="#/step4">
+        <span class="num">${s4 ? '✓' : '4'}</span>
+        <span class="card-body"><b>Step 4: The Charleston</b><small>Learn the passing order, then practice a full Charleston with a real rack.</small></span>
+        ${s4 ? '<span class="chip ok">Done</span>' : s3 ? '<span class="chip warn">Next</span>' : ''}</a>
     </div>`;
     let idx = 0;
     stages.forEach(st => {
@@ -149,11 +161,15 @@
     if (!d) return showHome();
     const backTo = d.lesson ? '#/lesson/' + d.lesson : '#/';
     setBack(backTo);
-    const st = { qs: d.make(), i: 0, score: 0 };
+    Store.data.seen = Store.data.seen || {};
+    const test = makeTest(id, Store.data.seen[id] || []);
+    Store.data.seen[id] = test.seen; Store.save();
+    const st = { qs: test.qs, i: 0, score: 0 };
 
     function render() {
       if (st.i >= st.qs.length) return finish();
       const q = st.qs[st.i];
+      if (q.h) { Store.data.seen[id] = markSeen(Store.data.seen[id] || [], q.h); Store.save(); }
       app.innerHTML = `<div class="drill">
         <div class="drill-top"><b>${d.title}</b><span>${st.i + 1} / ${st.qs.length}</span></div>
         <div class="meter small"><i style="width:${st.i / st.qs.length * 100}%"></i></div>
@@ -232,12 +248,13 @@
       let msg;
       if (pct === 100) msg = 'Perfect score. You know this one.';
       else if (ok) msg = 'Passed. Nice work.';
-      else msg = `You need ${PASS}% to pass. Have another look at the lesson and try again.`;
+      else msg = `You need ${PASS}% to pass. Have another look at ${d.lesson ? 'the lesson' : 'the lessons'} and try again.`;
       app.innerHTML = `<div class="result ${ok ? 'ok' : 'no'}">
         <div class="big">${pct}%</div>
         <p>${st.score} of ${st.qs.length} right</p>
         <p class="msg">${msg}</p>
         ${prev !== undefined && pct > prev ? '<p class="small">New best score.</p>' : ''}
+        <p class="small fresh">Try again any time and you'll get new questions. This test has ${test.hasGen ? 'over ' + Math.max(test.total, 1000).toLocaleString() : test.total} different questions, and none repeat until you've seen at least 100 others.</p>
         <div class="stack">
           ${ok && nextLesson ? `<a class="btn primary wide" href="#/lesson/${nextLesson.id}">Next lesson: ${nextLesson.title}</a>` : ''}
           ${ok && !nextLesson && id !== 'exam' ? `<a class="btn primary wide" href="#/drill/exam">Take the final quiz</a>` : ''}
@@ -406,35 +423,49 @@
 
   function tourMatch(w, lock) {
     lock(true);
-    const suits = shuffle(['b', 'c', 'd']).map(s => s + (2 + rand(7)));
-    const dragons = shuffle(['DR', 'DG', 'DW']);
+    // 8 suit tiles: each suit at least twice, all different, 1 Bam bird sometimes included
+    let tiles;
+    do {
+      tiles = [];
+      ['b', 'c', 'd'].forEach(s => { shuffle([1, 2, 3, 4, 5, 6, 7, 8, 9]).slice(0, 2).forEach(n => tiles.push(s + n)); });
+      while (tiles.length < 8) { const t = pick(SUITED); if (!tiles.includes(t)) tiles.push(t); }
+    } while (new Set(tiles).size !== 8);
+    tiles = shuffle(tiles);
     const goesWith = { b: 'DG', c: 'DR', d: 'DW' };
+    const dragons = ['DG', 'DR', 'DW'];
+    const counts = { DG: 0, DR: 0, DW: 0 };
     let sel = null, done = 0;
-    w.innerHTML = `<div class="match">
-      <div class="mcol">${suits.map(c => `<button class="mtile" data-c="${c}">${renderTile(c, 56)}<span>${SUIT_NAME[SUIT_LETTER[c[0]]]}s</span></button>`).join('')}</div>
-      <div class="mcol">${dragons.map(c => `<button class="mtile" data-c="${c}">${renderTile(c, 56)}<span>${tileName(c).replace(' (Soap)', '')}</span></button>`).join('')}</div>
-      </div><div id="mfb" class="tapinfo">Tap a suit tile on the left first.</div>`;
-    const fb = w.querySelector('#mfb');
-    const left = [...w.querySelectorAll('.mcol')[0].children], right = [...w.querySelectorAll('.mcol')[1].children];
-    left.forEach(b => {
+    w.innerHTML = `<p class="small center" id="mcount">0 of 8 matched</p>
+      <div class="m8grid">${tiles.map(c => `<button class="m8" data-c="${c}">${renderTile(c, 50)}<span>${tileName(c)}</span></button>`).join('')}</div>
+      <div class="m8drag">${dragons.map(c => `<button class="mdrag" data-c="${c}">${renderTile(c, 52)}<span class="mdn">${tileName(c).replace(' (Soap)', '')}${c === 'DW' ? '<small>soap</small>' : ''}</span><span class="mpile" id="pile-${c}"></span></button>`).join('')}</div>
+      <div id="mfb" class="tapinfo">Tap a tile on top, then tap its dragon below.</div>`;
+    const fb = w.querySelector('#mfb'), cnt = w.querySelector('#mcount');
+    const tbtns = [...w.querySelectorAll('.m8')], dbtns = [...w.querySelectorAll('.mdrag')];
+    tbtns.forEach(b => {
       b.onclick = () => {
-        left.forEach(x => x.classList.remove('sel'));
+        tbtns.forEach(x => x.classList.remove('sel'));
         b.classList.add('sel'); sel = b;
-        fb.textContent = 'Now tap the dragon that goes with ' + SUIT_NAME[SUIT_LETTER[b.dataset.c[0]]] + 's.';
+        fb.innerHTML = `<b>${tileName(b.dataset.c)}</b>. Now tap the dragon that goes with ${SUIT_NAME[SUIT_LETTER[b.dataset.c[0]]]}s.`;
       };
     });
-    right.forEach(b => {
+    dbtns.forEach(b => {
       b.onclick = () => {
-        if (!sel) { fb.textContent = 'Pick a suit tile on the left first.'; return; }
-        const s = sel.dataset.c[0];
-        if (goesWith[s] === b.dataset.c) {
-          [sel, b].forEach(x => { x.classList.remove('sel'); x.classList.add('matched', 'm-' + s); x.disabled = true; });
-          done++; sel = null;
-          fb.innerHTML = `<b>Match!</b> ${tileName(b.dataset.c).replace(' (Soap)', ' (soap)')} goes with ${SUIT_NAME[SUIT_LETTER[s]]}s.`;
-          if (done === 3) { fb.innerHTML = '<b>All three matched.</b> Green with Bams, red with Craks, soap with Dots.'; lock(false); }
+        if (!sel) { fb.textContent = 'Pick a tile on top first.'; return; }
+        const c = sel.dataset.c, s = c[0], d = b.dataset.c;
+        if (goesWith[s] === d) {
+          sel.classList.remove('sel'); sel.classList.add('matched', 'm-' + s); sel.disabled = true;
+          counts[d]++; done++; sel = null;
+          w.querySelector('#pile-' + d).insertAdjacentHTML('beforeend', renderTile(c, 20));
+          b.classList.add('flash', 'm-' + s); setTimeout(() => b.classList.remove('flash'), 350);
+          cnt.textContent = `${done} of 8 matched`;
+          fb.innerHTML = `<b>Match!</b> ${tileName(c)} is a ${SUIT_NAME[SUIT_LETTER[s]]}, so it goes with the ${tileName(d).replace(' (Soap)', ' (soap)')}.`;
+          if (done === 8) {
+            fb.innerHTML = `<b>All 8 matched!</b> Bams go with the Green Dragon, Craks with the Red Dragon, and Dots with soap. The number never matters, only the suit.`;
+            lock(false);
+          }
         } else {
           b.classList.add('shake'); setTimeout(() => b.classList.remove('shake'), 400);
-          fb.textContent = 'Not that one. Look at the colors.';
+          fb.innerHTML = `Not that one. ${tileName(c)} is a <b>${SUIT_NAME[SUIT_LETTER[s]]}</b>. ${s === 'b' ? 'Bamboo is green.' : s === 'c' ? 'Craks have the red 萬.' : 'Dots go with the white dragon.'}`;
         }
       };
     });
