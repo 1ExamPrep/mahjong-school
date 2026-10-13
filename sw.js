@@ -1,5 +1,5 @@
 /* Offline cache. Bump VERSION whenever you change any file so phones pick up the update. */
-const VERSION = 'mahjong-school-v15';
+const VERSION = 'mahjong-school-v16';
 const FILES = [
   './', 'index.html', 'css/style.css', 'js/tiles.js', 'js/content.js', 'js/drills.js', 'js/card.js', 'js/steps.js', 'js/ask.js', 'js/helper.js', 'js/app.js',
   'manifest.webmanifest', 'icon.svg', 'install.html', 'privacy.html',
