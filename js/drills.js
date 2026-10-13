@@ -821,7 +821,14 @@ function famsSetup() {
     Q('s-deal6', '<p class="q">How many tiles are in one wall?</p>', '38', ['36', '19', '40'], '19 stacks of two.'),
     Q('s-deal7', '<p class="q">How long is each wall?</p>', '19 stacks', ['18 stacks', '17 stacks', '20 stacks'], '19 stacks, two high.')
   ];
-  return [fam('count', count), fam('totals', totals), fam('seats', seats), fam('dice', dice), fam('deal', deal), bankFam('bank', SETUP_BANK)];
+  const NEXTW = { East: 'North', North: 'West', West: 'South', South: 'East' };
+  const walls = Object.keys(NEXTW).map(w => Q('s-wall:' + w, `<p class="q">${w}'s wall runs out. Which wall do you take tiles from next?</p>`,
+    `${NEXTW[w]}'s wall`, SEATS.filter(x => x !== w).map(x => `${x}'s wall`),
+    'Walls are used to the left (clockwise): East\'s, North\'s, West\'s, South\'s, then back to East\'s.'));
+  walls.push(Q('s-wall:first', '<p class="q">Which wall does the deal always start on?</p>', 'East\'s wall, just left of the break', ['North\'s wall', 'The wall across from East', 'Whichever wall is longest'], 'East breaks their own wall and dealing starts just left of the break.'));
+  walls.push(Q('s-wall:last', '<p class="q">Which tiles are the very last ones drawn in a game?</p>', 'The stacks East counted with the dice', ['The end of South\'s wall', 'The middle of West\'s wall', 'The first stacks dealt'], 'Those counted stacks sit at the end of the line, after South\'s wall.'));
+  walls.push(Q('s-wall:dirs', '<p class="q">Walls move one way and dealing moves the other. Which is which?</p>', 'Walls go left (clockwise), dealing and turns go right', ['Walls go right, dealing goes left', 'Both go to the right', 'Both go to the left'], 'Opposite directions: that\'s why it helps to point at the active end before play starts.'));
+  return [fam('count', count), fam('totals', totals), fam('seats', seats), fam('dice', dice), fam('deal', deal), fam('walls', walls), bankFam('bank', SETUP_BANK)];
 }
 
 // Charleston

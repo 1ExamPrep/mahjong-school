@@ -83,6 +83,34 @@
     return `<svg class="tablesvg" viewBox="0 0 ${SIZE} ${SIZE}" role="img" aria-label="Mahjong table with four walls">${r}</svg>`;
   }
 
+  /* ---------- walls go left, turns go right ---------- */
+  const WALL_NAME = { E: 'East\'s wall', N: 'North\'s wall', W: 'West\'s wall', S: 'South\'s wall' };
+  function dirSvg(kind) {
+    const seats = { East: [100, 188], South: [210, 100], West: [100, 12], North: [-10, 100] };
+    const lab = (t, x, y, c, sz) => `<text x="${x}" y="${y}" font-size="${sz || 12}" font-weight="800" text-anchor="middle" dominant-baseline="central" fill="${c}">${t}</text>`;
+    let g = `<rect x="44" y="44" width="112" height="112" rx="12" fill="var(--feltbg)"/>`;
+    Object.entries(seats).forEach(([n, [x, y]]) => { g += lab(n === 'East' ? 'East (you)' : n, x, y, 'var(--ink)', 11); });
+    if (kind === 'walls') {
+      const bars = [['E', 52, 160, 96, 9, '1'], ['N', 31, 52, 9, 96, '2'], ['W', 52, 31, 96, 9, '3'], ['S', 160, 52, 9, 96, '4']];
+      bars.forEach(([w, x, y, wd, h, n]) => {
+        g += `<rect x="${x}" y="${y}" width="${wd}" height="${h}" rx="3" fill="var(--wall2)"/>`;
+        const cx = x + wd / 2, cy = y + h / 2;
+        g += `<circle cx="${cx}" cy="${cy}" r="9" fill="#d4a017"/>` + lab(n, cx, cy + .5, '#fff', 11);
+      });
+      g += `<path d="M100 132 A32 32 0 1 1 132 100" fill="none" stroke="#f5c451" stroke-width="5" stroke-linecap="round" marker-end="url(#dw)"/>`;
+      g += lab('walls', 100, 100, '#fff', 12);
+    } else {
+      [['East', 100, 168, '1'], ['South', 168, 100, '2'], ['West', 100, 32, '3'], ['North', 32, 100, '4']].forEach(([n, x, y, k]) => {
+        g += `<circle cx="${x}" cy="${y}" r="10" fill="var(--felt)" stroke="#fff" stroke-width="1.5"/>` + lab(k, x, y + .5, '#fff', 11);
+      });
+      g += `<path d="M100 132 A32 32 0 1 0 68 100" fill="none" stroke="#fff" stroke-width="5" stroke-linecap="round" marker-end="url(#dt)"/>`;
+      g += lab('turns', 100, 100, '#fff', 12);
+    }
+    return `<svg class="dirsvg" viewBox="-26 0 252 200" role="img" aria-label="${kind === 'walls' ? 'Walls are used to the left, clockwise' : 'Turns go to the right, counterclockwise'}"><defs>
+      <marker id="dw" markerWidth="4" markerHeight="4" refX="2" refY="2" orient="auto"><path d="M0 0 L4 2 L0 4 Z" fill="#f5c451"/></marker>
+      <marker id="dt" markerWidth="4" markerHeight="4" refX="2" refY="2" orient="auto"><path d="M0 0 L4 2 L0 4 Z" fill="#fff"/></marker></defs>${g}</svg>`;
+  }
+
   /* ================= STEP 3 hub ================= */
   function step3Done() { const s = steps(); return !!(s.s3break && s.s3deal); }
   function showStep3() {
@@ -118,10 +146,26 @@
           <li>East takes the <b>top tile of the 1st and 3rd stacks</b>, ending with 14.</li>
           <li>South takes the bottom of the 1st, West the top of the 2nd, North the bottom of the 2nd. They each have 13.</li>
         </ol>
-        <p>When a wall runs out, keep going on the <b>next wall to the left</b>. Turns go to the right, but the wall is used to the left.</p>
+        <p>You'll run out of East's wall partway through the deal. The next section shows where to go.</p>
         <table class="t"><tr><th>Count it</th><th></th></tr>
           <tr><td>Tiles East holds</td><td><b>14</b></td></tr><tr><td>Tiles each other player holds</td><td><b>13</b></td></tr>
           <tr><td>Tiles dealt in all</td><td><b>53</b></td></tr><tr><td>Tiles left in the walls</td><td><b>99</b></td></tr></table></section>
+
+      <section class="sec"><h3>5. Which wall comes next</h3>
+        <p>You always start on <b>East's wall</b>, just left of the break. When it runs out, move to the <b>next wall on the left</b>:</p>
+        <ol class="wallorder">
+          <li><b>East's wall</b> (start just left of the break)</li>
+          <li><b>North's wall</b></li>
+          <li><b>West's wall</b></li>
+          <li><b>South's wall</b></li>
+          <li>Back to <b>East's wall</b>: the stacks you counted with the dice. They're the very last tiles.</li>
+        </ol>
+        <p>The wall moves <b>to the left</b> (clockwise), but the dealing and the turns go <b>to the right</b> (counterclockwise). They go in opposite directions.</p>
+        <div class="dirpair">
+          <figure>${dirSvg('walls')}<figcaption><b>Walls go left</b><br>East → North → West → South</figcaption></figure>
+          <figure>${dirSvg('turns')}<figcaption><b>Dealing and turns go right</b><br>East → South → West → North</figcaption></figure>
+        </div>
+        <p class="tour-note"><b>Easy way to remember:</b> the turn is handed to the player on your <b>right</b>, while the wall gets eaten up toward your <b>left</b>. Before the first turn, point at the end of the wall where the next tile will come from, so everyone agrees.</p></section>
 
       <h2 class="stage">Try it</h2>
       <div class="list">
@@ -255,18 +299,20 @@
     const tw = m.app.querySelector('#tw'), ctl = m.app.querySelector('#dctl'), help = m.app.querySelector('#modehelp');
     const draw = (extra) => { tw.innerHTML = tableSvg(Object.assign({ count: st.count, order: st.order, hands: st.hands, hl: st.hl, breakAt: st.n || undefined, showSaved: !!st.n, you: true }, extra || {})); };
     const reset = () => {
-      st.n = 0; st.order = drawOrder(0); st.count = Array(76).fill(2); st.grabs = []; st.g = 0; st.hl = []; st.hands = { East: 0, South: 0, West: 0, North: 0 }; st.mistakes = 0;
+      st.n = 0; st.order = drawOrder(0); st.count = Array(76).fill(2); st.grabs = []; st.g = 0; st.hl = []; st.hands = { East: 0, South: 0, West: 0, North: 0 }; st.mistakes = 0; st.walls = ['E']; st.askedWall = -1;
       draw(); ctl.innerHTML = '';
-      help.textContent = st.mode === 'watch' ? 'Roll, then step through the deal one grab at a time.' : 'Roll, then for each grab tap the player who takes tiles next.';
+      help.textContent = st.mode === 'watch' ? 'Roll, then step through the deal one grab at a time. Watch for when a wall runs out.' : 'Roll, then for each grab tap the player who takes tiles next. When a wall runs out, you pick the next wall.';
       const rb = m.app.querySelector('#droll'); rb.disabled = false; rb.textContent = 'Roll to break the wall';
     };
     const applyGrab = gr => { gr.take.forEach(([i, k]) => { st.count[i] -= k; }); st.hands[gr.seat] += gr.n; st.hl = gr.take.map(t => t[0]); };
+    const newWall = gr => { const w = gr.take.map(([i]) => st.order[i].w).find(x => !st.walls.includes(x)); return w || null; };
+    const wallNote = (from, to) => `${WALL_NAME[from]} has run out, so the deal moves <b>left</b> to <b>${WALL_NAME[to]}</b>.`;
     const finished = () => {
       st.hl = []; draw({ center: 'Deal done' });
       const youMode = st.mode === 'you';
       if (youMode && st.mistakes <= 2) saveStep('s3deal');
       if (!youMode) saveStep('s3dealwatch');
-      ctl.innerHTML = `<div class="fb ok"><b>Deal complete</b><p>East has 14, everyone else has 13. That's 53 tiles dealt and 99 left in the walls. East discards first.${youMode ? ` You made ${st.mistakes} ${st.mistakes === 1 ? 'mistake' : 'mistakes'}.` : ''}</p></div>
+      ctl.innerHTML = `<div class="fb ok"><b>Deal complete</b><p>East has 14, everyone else has 13. That's 53 tiles dealt and 99 left in the walls. The deal used ${st.walls.map(w => WALL_NAME[w]).join(', then ')}, moving left each time, while the tiles went to the players on the right. East discards first.${youMode ? ` You made ${st.mistakes} ${st.mistakes === 1 ? 'mistake' : 'mistakes'}.` : ''}</p></div>
         ${youMode && st.mistakes > 2 ? '<p class="small">Deal with 2 or fewer mistakes to check this off.</p>' : ''}
         <div class="stack">${!youMode ? '<button class="btn primary wide" id="tryyou">Now you deal</button>' : ''}<button class="btn ${youMode ? 'primary' : 'ghost'} wide" id="again">Deal again</button><a class="btn ghost wide" href="#/step3">Back to Step 3</a></div>`;
       const ty = ctl.querySelector('#tryyou');
@@ -275,15 +321,47 @@
     };
     const stepWatch = () => {
       if (st.g >= st.grabs.length) return finished();
-      const gr = st.grabs[st.g++]; applyGrab(gr); draw({ active: gr.seat });
-      ctl.innerHTML = `<div class="tapinfo"><b>${gr.what}</b><br><small>Grab ${st.g} of ${st.grabs.length}</small></div>
+      const gr = st.grabs[st.g++];
+      const nw = newWall(gr), prev = st.walls[st.walls.length - 1];
+      if (nw) st.walls.push(nw);
+      applyGrab(gr); draw({ active: gr.seat });
+      ctl.innerHTML = `${nw ? `<div class="wallnote">${wallNote(prev, nw)}</div>` : ''}<div class="tapinfo"><b>${gr.what}</b><br><small>Grab ${st.g} of ${st.grabs.length} · taking from ${WALL_NAME[st.order[gr.take[gr.take.length - 1][0]].w]}</small></div>
         <div class="stack"><button class="btn primary wide" id="nx">${st.g < st.grabs.length ? 'Next grab' : 'Finish'}</button><button class="btn ghost wide" id="auto">Play the rest</button></div>`;
       ctl.querySelector('#nx').onclick = stepWatch;
-      ctl.querySelector('#auto').onclick = () => { ctl.innerHTML = ''; const t = setInterval(() => { if (st.g >= st.grabs.length) { clearInterval(t); finished(); return; } const g = st.grabs[st.g++]; applyGrab(g); draw({ active: g.seat }); }, 380); };
+      ctl.querySelector('#auto').onclick = () => {
+        ctl.innerHTML = '<div class="tapinfo" id="autonote">Dealing...</div>';
+        const t = setInterval(() => {
+          if (st.g >= st.grabs.length) { clearInterval(t); finished(); return; }
+          const g = st.grabs[st.g++], nw = newWall(g), prev = st.walls[st.walls.length - 1];
+          if (nw) { st.walls.push(nw); ctl.querySelector('#autonote').innerHTML = wallNote(prev, nw); }
+          applyGrab(g); draw({ active: g.seat });
+        }, 420);
+      };
     };
     const stepYou = () => {
       if (st.g >= st.grabs.length) return finished();
       const gr = st.grabs[st.g];
+      const nw = newWall(gr);
+      if (nw && st.askedWall !== st.g) {
+        const prev = st.walls[st.walls.length - 1];
+        const opts = ['N', 'W', 'S', 'E'].filter(w => w !== prev);
+        ctl.innerHTML = `<div class="wallnote">${WALL_NAME[prev]} is running out.</div><p class="q center">Which wall do the next tiles come from?</p>
+          <div class="seatbtns three">${opts.map(w => `<button class="opt" data-w="${w}">${WALL_NAME[w]}</button>`).join('')}</div><div id="yfb" class="tapinfo">Walls are used in one direction all the way around.</div>`;
+        ctl.querySelectorAll('[data-w]').forEach(b => {
+          b.onclick = () => {
+            if (b.dataset.w !== nw) {
+              st.mistakes++; b.classList.add('wrong'); b.disabled = true;
+              ctl.querySelector('#yfb').innerHTML = `Not that one. Walls go to the <b>left</b> (clockwise): East's, then North's, then West's, then South's.`;
+              return;
+            }
+            st.walls.push(nw); st.askedWall = st.g;
+            ctl.querySelector('#yfb').innerHTML = `<b>Yes.</b> ${wallNote(prev, nw)}`;
+            ctl.querySelectorAll('[data-w]').forEach(x => { x.disabled = true; });
+            setTimeout(stepYou, 1100);
+          };
+        });
+        return;
+      }
       ctl.innerHTML = `<p class="q center">${st.g === 12 ? 'Everyone has 12. Who takes the next tile?' : st.g === 0 ? 'Who takes the first tiles?' : 'Who takes tiles next?'}</p>
         <div class="seatbtns">${SEAT_ORDER.map(s => `<button class="opt" data-s="${s}">${s}</button>`).join('')}</div><div id="yfb" class="tapinfo">Grab ${st.g + 1} of ${st.grabs.length}</div>`;
       ctl.querySelectorAll('[data-s]').forEach(b => {
@@ -303,7 +381,7 @@
     m.app.querySelector('#droll').onclick = e => {
       e.target.disabled = true;
       roll([...m.app.querySelectorAll('.dealtop .die')], ([a, c]) => {
-        st.n = a + c; st.order = drawOrder(st.n); st.count = Array(76).fill(2); st.grabs = buildDeal(st.order);
+        st.n = a + c; st.order = drawOrder(st.n); st.count = Array(76).fill(2); st.grabs = buildDeal(st.order); st.walls = ['E']; st.askedWall = -1;
         e.target.textContent = `${a} + ${c} = ${st.n}`;
         let k = 0; const counted = [];
         const t = setInterval(() => {
@@ -606,5 +684,5 @@
     render();
   }
 
-  window.StepsSchool = { showStep3, showStep4, showDiceTool, showBreakPractice, showDealPractice, showOrderDrill, showPassPractice, step3Done, step4Done, drawOrder, buildDeal };
+  window.StepsSchool = { dirSvg, showStep3, showStep4, showDiceTool, showBreakPractice, showDealPractice, showOrderDrill, showPassPractice, step3Done, step4Done, drawOrder, buildDeal };
 })();

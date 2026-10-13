@@ -463,3 +463,77 @@ main { max-width: 760px; margin: 0 auto; padding: 16px 16px 48px; }
 .fitbar b { font-size: 18px; color: var(--felt); }
 .fitbar small { color: var(--muted); width: 100%; text-align: center; }
 .fitbar.big b { font-size: 26px; }
+
+/* ---------- wall direction ---------- */
+.dirpair { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 10px 0; }
+.dirpair figure { margin: 0; text-align: center; }
+.dirpair figcaption { font-size: 13px; line-height: 1.35; }
+.dirsvg { width: 100%; height: auto; max-width: 220px; }
+.wallorder li { margin: .35em 0; }
+.wallnote { background: var(--warn-bg); border-radius: 10px; padding: 8px 12px; margin: 10px 0 0; font-size: 15px; text-align: center; }
+.seatbtns.three { grid-template-columns: repeat(3, 1fr); }
+.seatbtns.three .opt { font-size: 14px; }
+
+/* ---------- Ask about the rules ---------- */
+.askcard { display: flex; align-items: center; gap: 12px; margin-top: 12px; padding: 14px; text-decoration: none; background: var(--felt); color: #fff; border-radius: var(--radius); box-shadow: var(--shadow); }
+.askcard small { display: block; opacity: .85; font-size: 14px; }
+.askicon { font-size: 26px; }
+.askgo { margin-left: auto; font-size: 28px; opacity: .8; }
+.icon-btn + .icon-btn { margin-left: 2px; }
+.ask { display: flex; flex-direction: column; min-height: calc(100vh - 110px); }
+.askhead h1 { font-size: 26px; margin-bottom: 2px; }
+.askhead .small { margin-top: 0; }
+.chat { flex: 1; display: flex; flex-direction: column; gap: 10px; padding: 8px 0 90px; }
+.msg { max-width: 88%; padding: 10px 14px; border-radius: 16px; line-height: 1.5; font-size: 16px; }
+.msg.me { align-self: flex-end; background: var(--felt); color: #fff; border-bottom-right-radius: 4px; }
+.msg.bot { align-self: flex-start; background: var(--surface); border: 1px solid var(--line); border-bottom-left-radius: 4px; box-shadow: var(--shadow); }
+.msg.bot .tile-row { display: flex; margin: 6px 0; }
+.msg.typing { display: flex; gap: 4px; padding: 14px; }
+.msg.typing span { width: 8px; height: 8px; border-radius: 50%; background: var(--muted); animation: blink 1s infinite; }
+.msg.typing span:nth-child(2) { animation-delay: .15s; } .msg.typing span:nth-child(3) { animation-delay: .3s; }
+@keyframes blink { 0%, 100% { opacity: .25; } 50% { opacity: 1; } }
+.asklink { display: inline-block; margin-top: 6px; font-weight: 700; color: var(--felt); }
+.srcline { margin: 0 0 4px; font-size: 13px; color: var(--muted); }
+.relq { margin: 10px 0 4px; }
+.askchips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.chipq { font: inherit; font-size: 14px; background: var(--surface2); border: 1px solid var(--line); color: var(--ink); border-radius: 99px; padding: 7px 12px; cursor: pointer; text-align: left; }
+.askbar { position: sticky; bottom: 0; display: flex; gap: 8px; padding: 10px 0 calc(10px + env(safe-area-inset-bottom)); background: linear-gradient(to top, var(--bg) 80%, transparent); }
+.askbar input { flex: 1; min-width: 0; font: inherit; font-size: 16px; padding: 12px 14px; border-radius: 12px; border: 1.5px solid var(--line); background: var(--surface); color: var(--ink); }
+.askbar input:focus { outline: none; border-color: var(--felt); }
+
+/* ---------- tools row + hand helper ---------- */
+.tools { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 12px; }
+.tools .askcard { margin-top: 0; flex-direction: column; align-items: flex-start; gap: 4px; padding: 14px 12px; }
+.tools .askcard small { font-size: 13px; line-height: 1.3; }
+.askcard.alt { background: #8a5a1c; }
+@media (prefers-color-scheme: dark) { .askcard.alt { background: #7a4f19; } }
+.photodrop { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 18px 12px; border: 2px dashed var(--line); border-radius: 14px; cursor: pointer; text-align: center; }
+.photodrop small { color: var(--muted); }
+.phicon { font-size: 34px; }
+.photobox img { display: block; width: 100%; max-height: 190px; object-fit: contain; border-radius: 10px; background: #000; }
+.photobox.big img { max-height: 70vh; }
+.photobtns { display: flex; justify-content: space-between; }
+.photosec.has { position: sticky; top: calc(56px + env(safe-area-inset-top)); z-index: 4; padding: 10px; }
+.rackhead { display: flex; justify-content: space-between; align-items: center; }
+.rackhead h3 { margin: 0; }
+.rcount { font-size: 14px; background: var(--warn-bg); color: var(--warn); border-radius: 99px; padding: 2px 10px; margin-left: 6px; }
+.rcount.ok { background: var(--ok-bg); color: var(--ok); }
+.myrack { display: flex; flex-wrap: wrap; gap: 3px; min-height: 52px; margin: 8px 0; align-items: center; }
+.myrack .rt { background: none; border: 0; padding: 0; cursor: pointer; }
+.padlabel { font-size: 12px; text-transform: uppercase; letter-spacing: .6px; color: var(--muted); margin: 12px 0 4px; }
+.pad { display: grid; grid-template-columns: repeat(9, 1fr); gap: 3px; }
+.padt { position: relative; background: none; border: 0; padding: 0; cursor: pointer; border-radius: 6px; }
+.padt svg { width: 100%; height: auto; display: block; }
+.padt:active { transform: scale(.94); }
+.padt i { position: absolute; top: -5px; right: -4px; background: var(--felt); color: #fff; font-style: normal; font-size: 11px; font-weight: 800; border-radius: 99px; min-width: 18px; height: 18px; line-height: 18px; text-align: center; }
+.resultsec { background: color-mix(in srgb, var(--felt) 10%, var(--surface)); border-color: var(--felt); }
+.resultsec .hl { color: var(--felt); }
+.catbars { display: grid; gap: 6px; }
+.catbar { display: grid; grid-template-columns: 130px 1fr 26px; align-items: center; gap: 8px; font-size: 14px; }
+.cbtrack { height: 12px; background: var(--surface2); border-radius: 99px; overflow: hidden; border: 1px solid var(--line); }
+.cbtrack i { display: block; height: 100%; background: var(--muted); border-radius: 99px; opacity: .55; }
+.catbar.top .cbtrack i { background: var(--felt); opacity: 1; }
+.catbar.top .cbname { font-weight: 800; }
+.catbar b { text-align: right; }
+
+@media (max-width: 500px) { .photobox img { max-height: 140px; } .photobox.big img { max-height: 60vh; } }

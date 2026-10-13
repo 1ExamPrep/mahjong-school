@@ -48,6 +48,8 @@
     if (page === 'card') return CardSchool.showCardPage();
     if (page === 'cardlesson') return CardSchool.showLessonPage();
     if (page === 'find') return CardSchool.playGame(id);
+    if (page === 'ask') return AskSchool.showAsk();
+    if (page === 'helper') return HelperSchool.show();
     if (page === 'step3') return ({ dice: StepsSchool.showDiceTool, break: StepsSchool.showBreakPractice, deal: StepsSchool.showDealPractice }[id] || StepsSchool.showStep3)();
     if (page === 'step4') return ({ order: StepsSchool.showOrderDrill, pass: StepsSchool.showPassPractice }[id] || StepsSchool.showStep4)();
     showHome();
@@ -90,6 +92,8 @@
         : !StepsSchool.step4Done() ? `<a class="btn primary" href="#/step4">Step 4: The Charleston</a>`
         : next ? `<a class="btn primary" href="#/lesson/${next.id}">${done ? 'Continue' : 'Start'}: ${next.title}</a>` : `<a class="btn primary" href="#/drill/exam">Take the final quiz</a>`}
     </section>`;
+    html += `<div class="tools"><a class="askcard" href="#/ask"><span class="askicon">💬</span><span><b>Ask about the rules</b><small>Type any rules question</small></span></a>
+      <a class="askcard alt" href="#/helper"><span class="askicon">📷</span><span><b>Hand helper</b><small>Snap your rack, see what to go for</small></span></a></div>`;
     if (!Store.data.themeChosen) {
       html += `<a class="banner" href="#/tiles"><span class="tile-row">${TILE_THEMES.map(t => renderTile('d5', 26, t)).join('')}</span><span><b>Pick your tile style</b><small>Six looks to try. Tap to choose.</small></span></a>`;
     }

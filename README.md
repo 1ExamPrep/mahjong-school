@@ -35,6 +35,8 @@ Then visit `http://localhost:8000`.
 | `js/drills.js` | Every quiz question and the question generators |
 | `js/card.js` | Step 2: the practice card, the engine that scores any rack against every hand, and the four hand-finder games |
 | `js/steps.js` | Step 3 (dice roller, wall breaking, deal simulator) and Step 4 (Charleston order drill and full passing practice) |
+| `js/ask.js` | "Ask about the rules": an offline rules chat that answers from a built-in FAQ, the lessons and the quiz explanations |
+| `js/helper.js` | Hand helper: photo of your rack plus a tile keypad, then ranked categories, best hands and tiles to pass |
 | `js/app.js` | Pages, the quiz engine, and saved progress |
 | `sw.js` | Offline support |
 | `manifest.webmanifest`, `icon.svg` | Lets phones install it like an app |
