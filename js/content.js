@@ -521,7 +521,7 @@ const TOUR = [
     type: 'info', title: 'Jokers',
     body: `<p>There are eight <b>jokers</b>. A joker can stand in for a tile, but only inside a group of <b>three or more of the same tile</b>.</p>
       <div class="pairs">
-        <div class="pair-row ok">[[c7 c7 J|40]]<span>Fine. Three 7 Craks, one is a joker.</span></div>
+        <div class="pair-row ok">[[c7 c7 J|40]]<span>Allowed. Three 7 Craks, one is a joker.</span></div>
         <div class="pair-row bad">[[F J|40]]<span>Not allowed. A pair can't use a joker.</span></div>
       </div>
       <p class="small">You can never pass a joker to another player, and nobody can pick up a joker someone throws away.</p>`
